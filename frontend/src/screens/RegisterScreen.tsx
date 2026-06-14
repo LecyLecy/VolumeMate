@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native-web';
 import { BrandMark } from '../components/BrandMark';
+import { OtpVerificationCard } from '../components/OtpVerificationCard';
 import { colors, fonts } from '../theme';
 import { api } from '../services/api';
 
@@ -206,31 +207,13 @@ export function RegisterScreen({ onBackPress, onLoginPress }: RegisterScreenProp
             ) : null}
 
             {phase === 'otp' ? (
-              <View style={styles.otpCard}>
-                <View style={styles.otpIcon}>
-                  <Text style={styles.otpIconText}>@</Text>
-                </View>
-                <Text style={styles.otpTitle}>Verifikasi Email</Text>
-                <Text style={styles.otpSubtitle}>
-                  Masukkan kode OTP yang dikirim ke {email.trim() || 'email Anda'}. Untuk demo ini, kode apa pun diterima.
-                </Text>
-                <TextInput
-                  accessibilityLabel="Kode OTP"
-                  autoCapitalize="characters"
-                  inputMode="numeric"
-                  keyboardType="number-pad"
-                  onChangeText={setOtpCode}
-                  onKeyPress={(event) => {
-                    if (event.nativeEvent.key === 'Enter') {
-                      handleOtpContinue();
-                    }
-                  }}
-                  placeholder="123456"
-                  placeholderTextColor={colors.outlineVariant}
-                  style={[styles.input, styles.otpInput]}
-                  value={otpCode}
-                />
-              </View>
+              <OtpVerificationCard
+                email={email}
+                onBack={handleBack}
+                onOtpChange={setOtpCode}
+                onSubmit={handleOtpContinue}
+                otpCode={otpCode}
+              />
             ) : null}
 
             {phase === 'organization' ? (
@@ -725,48 +708,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 12,
     lineHeight: 18,
-  },
-  otpCard: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLowest,
-    borderColor: colors.outlineVariant,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 12,
-    padding: 18,
-  },
-  otpIcon: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.secondaryContainer,
-    borderRadius: 24,
-  },
-  otpIconText: {
-    color: colors.primary,
-    fontFamily: fonts.heading,
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  otpTitle: {
-    color: colors.onSurface,
-    fontFamily: fonts.heading,
-    fontSize: 20,
-    fontWeight: '700',
-    lineHeight: 26,
-  },
-  otpSubtitle: {
-    color: colors.onSurfaceVariant,
-    fontFamily: fonts.body,
-    fontSize: 13,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  otpInput: {
-    letterSpacing: 4,
-    textAlign: 'center',
-    width: '100%',
   },
   placeholderCard: {
     backgroundColor: colors.surfaceContainerLowest,

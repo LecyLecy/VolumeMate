@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native-web';
 import { BrandMark } from '../components/BrandMark';
+import { OtpVerificationCard } from '../components/OtpVerificationCard';
 import { colors, fonts } from '../theme';
 import { api } from '../services/api';
 
@@ -19,6 +20,8 @@ type LoginScreenProps = {
   onRegisterPress?: () => void;
   onSupplierLogin?: () => void;
 };
+
+type LoginPhase = 'login' | 'forgot-form' | 'forgot-otp';
 
 const cardShadow = {
   boxShadow: '0 4px 12px rgba(27, 67, 50, 0.05)',
@@ -32,10 +35,66 @@ export function LoginScreen({
   onSupplierLogin,
 }: LoginScreenProps) {
   const { height } = useWindowDimensions();
+  const [phase, setPhase] = useState<LoginPhase>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [forgotOtpCode, setForgotOtpCode] = useState('');
   const [notice, setNotice] = useState('');
+
+  const showLoginNotice = (message: string) => {
+    setNotice(message);
+    window.setTimeout(() => setNotice(''), 2800);
+  };
+
+  const goToForgotForm = () => {
+    setNotice('');
+    setForgotOtpCode('');
+    setPhase('forgot-form');
+  };
+
+  const goToLogin = () => {
+    setNotice('');
+    setPhase('login');
+  };
+
+  const handleForgotFormSubmit = () => {
+    if (!forgotEmail.trim()) {
+      setNotice('Email wajib diisi.');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setNotice('Password baru minimal 8 karakter.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setNotice('Konfirmasi password belum sama.');
+      return;
+    }
+
+    setNotice('');
+    setForgotOtpCode('');
+    setPhase('forgot-otp');
+  };
+
+  const handleForgotOtpSubmit = () => {
+    if (!forgotOtpCode.trim()) {
+      setNotice('Masukkan kode OTP terlebih dahulu.');
+      return;
+    }
+
+    setForgotEmail('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setForgotOtpCode('');
+    setPhase('login');
+    showLoginNotice('Password berhasil diubah untuk demo. Silakan masuk kembali.');
+  };
 
   const handleLogin = async () => {
     const loginCode = email.trim();
@@ -112,6 +171,114 @@ export function LoginScreen({
     }
   };
 
+  if (phase === 'forgot-form') {
+    return (
+      <SafeAreaView style={[styles.safeArea, { minHeight: height }]}>
+        <View style={styles.page}>
+          <View style={styles.card}>
+            <Pressable accessibilityRole="button" onPress={goToLogin} style={styles.backButton}>
+              <Text style={styles.backText}>Kembali</Text>
+            </Pressable>
+
+            <View style={styles.header}>
+              <BrandMark size={38} />
+              <Text style={styles.title}>Lupa Password</Text>
+              <Text style={styles.subtitle}>Masukkan email dan password baru, lalu verifikasi lewat OTP.</Text>
+            </View>
+
+            <View style={styles.form}>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Email atau Gmail</Text>
+                <View style={styles.inputWrap}>
+                  <Text style={styles.inputIcon}>@</Text>
+                  <TextInput
+                    accessibilityLabel="Email reset password"
+                    autoCapitalize="none"
+                    inputMode="email"
+                    keyboardType="email-address"
+                    onChangeText={setForgotEmail}
+                    placeholder="masukkan@email.anda"
+                    placeholderTextColor={colors.outline}
+                    style={styles.input}
+                    value={forgotEmail}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Password Baru</Text>
+                <View style={styles.inputWrap}>
+                  <Text style={styles.inputIcon}>#</Text>
+                  <TextInput
+                    accessibilityLabel="Password Baru"
+                    onChangeText={setNewPassword}
+                    placeholder="Minimal 8 karakter"
+                    placeholderTextColor={colors.outline}
+                    secureTextEntry
+                    style={styles.input}
+                    value={newPassword}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Konfirmasi Password Baru</Text>
+                <View style={styles.inputWrap}>
+                  <Text style={styles.inputIcon}>#</Text>
+                  <TextInput
+                    accessibilityLabel="Konfirmasi Password Baru"
+                    onChangeText={setConfirmNewPassword}
+                    onKeyPress={(event) => {
+                      if (event.nativeEvent.key === 'Enter') {
+                        handleForgotFormSubmit();
+                      }
+                    }}
+                    placeholder="Ulangi password baru"
+                    placeholderTextColor={colors.outline}
+                    secureTextEntry
+                    style={styles.input}
+                    value={confirmNewPassword}
+                  />
+                </View>
+              </View>
+
+              <Pressable accessibilityRole="button" onPress={handleForgotFormSubmit} style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>Kirim OTP</Text>
+              </Pressable>
+            </View>
+
+            {notice ? <Text style={styles.notice}>{notice}</Text> : null}
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (phase === 'forgot-otp') {
+    return (
+      <SafeAreaView style={[styles.safeArea, { minHeight: height }]}>
+        <View style={styles.page}>
+          <View style={styles.card}>
+            <OtpVerificationCard
+              email={forgotEmail}
+              onBack={() => {
+                setNotice('');
+                setPhase('forgot-form');
+              }}
+              onOtpChange={setForgotOtpCode}
+              onSubmit={handleForgotOtpSubmit}
+              otpCode={forgotOtpCode}
+              subtitle={`Masukkan kode OTP yang dikirim ke ${forgotEmail.trim() || 'email Anda'}. Untuk demo ini, kode apa pun diterima.`}
+              title="Verifikasi Reset Password"
+            />
+
+            {notice ? <Text style={styles.notice}>{notice}</Text> : null}
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.safeArea, { minHeight: height }]}>
       <View style={styles.page}>
@@ -166,7 +333,7 @@ export function LoginScreen({
 
             <Pressable
               accessibilityRole="link"
-              onPress={() => setNotice('Fitur lupa password belum tersedia.')}
+              onPress={goToForgotForm}
               style={styles.forgotLink}
             >
               <Text style={styles.linkText}>Lupa Password?</Text>
@@ -217,6 +384,14 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     gap: 8,
+  },
+  title: {
+    color: colors.onSurface,
+    fontFamily: fonts.heading,
+    fontSize: 24,
+    fontWeight: '700',
+    lineHeight: 32,
+    textAlign: 'center',
   },
   subtitle: {
     color: colors.onSurfaceVariant,
@@ -284,6 +459,19 @@ const styles = StyleSheet.create({
   },
   forgotLink: {
     alignSelf: 'flex-end',
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  backText: {
+    color: colors.primary,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    lineHeight: 16,
   },
   linkText: {
     color: colors.primary,
