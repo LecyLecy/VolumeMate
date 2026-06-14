@@ -150,7 +150,6 @@ export function RegisterScreen({ onBackPress, onLoginPress }: RegisterScreenProp
       <View style={styles.shell}>
         <View style={styles.topBar}>
           <Pressable accessibilityRole="button" onPress={handleBack} style={styles.backButton}>
-            <Text style={styles.backIcon}>{'<'}</Text>
             <Text style={styles.backText}>Kembali</Text>
           </Pressable>
           <BrandMark size={28} />
@@ -539,12 +538,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 6,
-  },
-  backIcon: {
-    color: colors.primary,
-    fontFamily: fonts.body,
-    fontSize: 18,
-    fontWeight: '700',
   },
   backText: {
     color: colors.primary,
