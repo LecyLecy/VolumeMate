@@ -16,6 +16,8 @@ Thumbs.db
 AGENTS.md
 image/
 .playwright-mcp/
+own_note.txt
+
 
 # Node/Frontend (Vite/React)
 node_modules/

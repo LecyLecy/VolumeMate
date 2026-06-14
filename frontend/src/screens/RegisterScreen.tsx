@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, type ChangeEvent, type CSSProperties, useState } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -10,39 +10,65 @@ import {
 } from 'react-native-web';
 import { BrandMark } from '../components/BrandMark';
 import { colors, fonts } from '../theme';
+import { api } from '../services/api';
 
 type RegisterScreenProps = {
   onBackPress?: () => void;
   onLoginPress?: () => void;
 };
-import { api } from '../services/api';
 
 type Role = 'koperasi' | 'supplier';
+type RegisterPhase = 'account' | 'otp' | 'organization' | 'document';
 
-
-const steps = [
-  { id: '1', label: 'Akun', isActive: true },
-  { id: '2', label: 'Organisasi', isActive: false },
-  { id: '3', label: 'Dokumen', isActive: false },
-];
+const stepOrder: RegisterPhase[] = ['account', 'organization', 'document'];
+const stepLabels: Record<RegisterPhase, string> = {
+  account: 'Akun',
+  otp: 'Akun',
+  organization: 'Organisasi',
+  document: 'Dokumen',
+};
 
 export function RegisterScreen({ onBackPress, onLoginPress }: RegisterScreenProps) {
   const { height } = useWindowDimensions();
+  const [phase, setPhase] = useState<RegisterPhase>('account');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('koperasi');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [organizationName, setOrganizationName] = useState('');
+  const [organizationContact, setOrganizationContact] = useState('');
+  const [ktpFileName, setKtpFileName] = useState('');
+  const [legalDocumentFileName, setLegalDocumentFileName] = useState('');
   const [notice, setNotice] = useState('');
 
   const canContinue = name.trim().length > 0 && email.trim().length > 0 && password.trim().length >= 8 && acceptedTerms;
+  const activeStep = phase === 'otp' ? 'account' : phase;
+  const activeStepIndex = stepOrder.indexOf(activeStep);
 
-  const handleContinue = async () => {
+  const handleAccountContinue = () => {
     if (!canContinue) {
       setNotice('Lengkapi nama, email, kata sandi minimal 8 karakter, dan setujui syarat layanan.');
       return;
     }
 
+    setNotice('');
+    setOtpCode('');
+    setPhase('otp');
+  };
+
+  const handleOtpContinue = () => {
+    if (!otpCode.trim()) {
+      setNotice('Masukkan kode OTP terlebih dahulu.');
+      return;
+    }
+
+    setNotice('');
+    setPhase('organization');
+  };
+
+  const handleSubmitRegister = async () => {
     try {
       setNotice('Mendaftarkan akun...');
       await api.register({
@@ -60,11 +86,70 @@ export function RegisterScreen({ onBackPress, onLoginPress }: RegisterScreenProp
     }
   };
 
+  const handleBack = () => {
+    setNotice('');
+
+    if (phase === 'otp') {
+      setPhase('account');
+      return;
+    }
+
+    if (phase === 'organization') {
+      setOtpCode('');
+      setPhase('account');
+      return;
+    }
+
+    if (phase === 'document') {
+      setPhase('organization');
+      return;
+    }
+
+    onBackPress?.();
+  };
+
+  const getPrimaryAction = () => {
+    if (phase === 'account') {
+      return {
+        disabled: !canContinue,
+        label: 'Lanjutkan',
+        onPress: handleAccountContinue,
+      };
+    }
+
+    if (phase === 'otp') {
+      return {
+        disabled: !otpCode.trim(),
+        label: 'Verifikasi Email',
+        onPress: handleOtpContinue,
+      };
+    }
+
+    if (phase === 'organization') {
+      return {
+        disabled: false,
+        label: 'Lanjut ke Dokumen',
+        onPress: () => {
+          setNotice('');
+          setPhase('document');
+        },
+      };
+    }
+
+    return {
+      disabled: false,
+      label: 'Selesaikan Pendaftaran',
+      onPress: handleSubmitRegister,
+    };
+  };
+
+  const primaryAction = getPrimaryAction();
+
   return (
     <SafeAreaView style={[styles.safeArea, { minHeight: height }]}>
       <View style={styles.shell}>
         <View style={styles.topBar}>
-          <Pressable accessibilityRole="button" onPress={onBackPress} style={styles.backButton}>
+          <Pressable accessibilityRole="button" onPress={handleBack} style={styles.backButton}>
             <Text style={styles.backIcon}>{'<'}</Text>
             <Text style={styles.backText}>Kembali</Text>
           </Pressable>
@@ -76,100 +161,139 @@ export function RegisterScreen({ onBackPress, onLoginPress }: RegisterScreenProp
           <View style={styles.header}>
             <Text style={styles.title}>Buat Akun Baru</Text>
             <Text style={styles.subtitle}>
-              Lengkapi informasi di bawah ini untuk mendaftar sebagai Koperasi atau Pemasok.
+              {getPhaseSubtitle(phase, email)}
             </Text>
           </View>
 
           <View style={styles.progress}>
-            <View style={styles.progressLine} />
-            <View style={styles.progressFill} />
-            {steps.map((step) => (
-              <View key={step.id} style={styles.stepItem}>
-                <View style={[styles.stepCircle, step.isActive && styles.stepCircleActive]}>
-                  <Text style={[styles.stepNumber, step.isActive && styles.stepNumberActive]}>
-                    {step.id}
-                  </Text>
-                </View>
-                <Text style={[styles.stepLabel, step.isActive && styles.stepLabelActive]}>
-                  {step.label}
-                </Text>
-              </View>
-            ))}
+            {stepOrder.map((step, index) => {
+              const isActive = activeStep === step;
+              const isCompleted = activeStepIndex > index;
+
+              return (
+                <Fragment key={step}>
+                  <View style={styles.stepItem}>
+                    <View style={[styles.stepCircle, (isActive || isCompleted) && styles.stepCircleActive]}>
+                      <Text style={[styles.stepNumber, (isActive || isCompleted) && styles.stepNumberActive]}>
+                        {index + 1}
+                      </Text>
+                    </View>
+                    <Text style={[styles.stepLabel, (isActive || isCompleted) && styles.stepLabelActive]}>
+                      {stepLabels[step]}
+                    </Text>
+                  </View>
+                  {index < stepOrder.length - 1 ? (
+                    <View style={[styles.stepConnector, activeStepIndex > index && styles.stepConnectorActive]} />
+                  ) : null}
+                </Fragment>
+              );
+            })}
           </View>
 
           <View style={styles.form}>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Nama Lengkap</Text>
-              <TextInput
-                accessibilityLabel="Nama Lengkap"
-                autoCapitalize="words"
-                onChangeText={setName}
-                placeholder="Budi Santoso"
-                placeholderTextColor={colors.outlineVariant}
-                style={styles.input}
-                value={name}
+            {phase === 'account' ? (
+              <AccountFields
+                acceptedTerms={acceptedTerms}
+                email={email}
+                name={name}
+                onAcceptedTermsChange={setAcceptedTerms}
+                onEmailChange={setEmail}
+                onNameChange={setName}
+                onPasswordChange={setPassword}
+                onRoleChange={setRole}
+                password={password}
+                role={role}
               />
-            </View>
+            ) : null}
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Alamat Email (Gmail)</Text>
-              <TextInput
-                accessibilityLabel="Alamat Email Gmail"
-                autoCapitalize="none"
-                inputMode="email"
-                keyboardType="email-address"
-                onChangeText={setEmail}
-                placeholder="contoh@gmail.com"
-                placeholderTextColor={colors.outlineVariant}
-                style={styles.input}
-                value={email}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Kata Sandi</Text>
-              <TextInput
-                accessibilityLabel="Kata Sandi"
-                onChangeText={setPassword}
-                placeholder="Minimal 8 karakter"
-                placeholderTextColor={colors.outlineVariant}
-                secureTextEntry
-                style={styles.input}
-                value={password}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Peran Anda</Text>
-              <View style={styles.roleGrid}>
-                <RoleOption
-                  description="Kelola pembelian dan pool bersama"
-                  isSelected={role === 'koperasi'}
-                  label="Manajer Koperasi"
-                  marker="K"
-                  onPress={() => setRole('koperasi')}
-                />
-                <RoleOption
-                  description="Terima proposal pembelian"
-                  isSelected={role === 'supplier'}
-                  label="Pemasok"
-                  marker="S"
-                  onPress={() => setRole('supplier')}
+            {phase === 'otp' ? (
+              <View style={styles.otpCard}>
+                <View style={styles.otpIcon}>
+                  <Text style={styles.otpIconText}>@</Text>
+                </View>
+                <Text style={styles.otpTitle}>Verifikasi Email</Text>
+                <Text style={styles.otpSubtitle}>
+                  Masukkan kode OTP yang dikirim ke {email.trim() || 'email Anda'}. Untuk demo ini, kode apa pun diterima.
+                </Text>
+                <TextInput
+                  accessibilityLabel="Kode OTP"
+                  autoCapitalize="characters"
+                  inputMode="numeric"
+                  keyboardType="number-pad"
+                  onChangeText={setOtpCode}
+                  onKeyPress={(event) => {
+                    if (event.nativeEvent.key === 'Enter') {
+                      handleOtpContinue();
+                    }
+                  }}
+                  placeholder="123456"
+                  placeholderTextColor={colors.outlineVariant}
+                  style={[styles.input, styles.otpInput]}
+                  value={otpCode}
                 />
               </View>
-            </View>
+            ) : null}
 
-            <Pressable
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: acceptedTerms }}
-              onPress={() => setAcceptedTerms((current) => !current)}
-              style={styles.termsRow}
-            >
-              <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
-                <Text style={styles.checkboxText}>{acceptedTerms ? 'v' : ''}</Text>
+            {phase === 'organization' ? (
+              <View style={styles.placeholderCard}>
+                <Text style={styles.placeholderTitle}>Data Organisasi</Text>
+                <Text style={styles.placeholderCopy}>
+                  Data ini belum dikirim ke backend. Untuk sekarang digunakan sebagai placeholder alur verifikasi.
+                </Text>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.label}>Nama Organisasi</Text>
+                  <TextInput
+                    accessibilityLabel="Nama Organisasi"
+                    onChangeText={setOrganizationName}
+                    placeholder={role === 'supplier' ? 'PT Agro Sejahtera' : 'Koperasi Tani Makmur'}
+                    placeholderTextColor={colors.outlineVariant}
+                    style={styles.input}
+                    value={organizationName}
+                  />
+                </View>
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.label}>Kontak Penanggung Jawab</Text>
+                  <TextInput
+                    accessibilityLabel="Kontak Penanggung Jawab"
+                    onChangeText={setOrganizationContact}
+                    placeholder="081234567890"
+                    placeholderTextColor={colors.outlineVariant}
+                    style={styles.input}
+                    value={organizationContact}
+                  />
+                </View>
               </View>
-              <Text style={styles.termsText}>Saya menyetujui Syarat Layanan VolumeMate.</Text>
-            </Pressable>
+            ) : null}
+
+            {phase === 'document' ? (
+              <View style={styles.placeholderCard}>
+                <Text style={styles.placeholderTitle}>Dokumen Verifikasi</Text>
+                <Text style={styles.placeholderCopy}>
+                  Upload asli akan dihubungkan nanti. Untuk demo ini, pilih file agar nama dokumen tersimpan di browser saja.
+                </Text>
+                <FileUploadField
+                  accept=".jpg,.jpeg,.png,.webp,.pdf,image/*,application/pdf"
+                  fileName={ktpFileName}
+                  label="Foto KTP Penanggung Jawab"
+                  onFileChange={setKtpFileName}
+                  placeholder="Pilih file KTP: JPG, PNG, WEBP, atau PDF"
+                />
+                <FileUploadField
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  fileName={legalDocumentFileName}
+                  label="Dokumen Legal Organisasi"
+                  onFileChange={setLegalDocumentFileName}
+                  placeholder="Pilih dokumen legal: PDF, DOC, atau DOCX"
+                />
+                <View style={styles.reviewBox}>
+                  <Text style={styles.reviewLabel}>Ringkasan Pendaftaran</Text>
+                  <Text style={styles.reviewText}>{name.trim() || '-'} - {email.trim() || '-'}</Text>
+                  <Text style={styles.reviewText}>
+                    {role === 'supplier' ? 'Pemasok' : 'Manajer Koperasi'} - {organizationName.trim() || 'Organisasi belum diisi'}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
 
             {notice ? <Text style={styles.notice}>{notice}</Text> : null}
           </View>
@@ -177,10 +301,11 @@ export function RegisterScreen({ onBackPress, onLoginPress }: RegisterScreenProp
           <View style={styles.footerActions}>
             <Pressable
               accessibilityRole="button"
-              onPress={handleContinue}
-              style={[styles.primaryButton, !canContinue && styles.primaryButtonDisabled]}
+              disabled={primaryAction.disabled}
+              onPress={primaryAction.onPress}
+              style={[styles.primaryButton, primaryAction.disabled && styles.primaryButtonDisabled]}
             >
-              <Text style={styles.primaryButtonText}>Lanjutkan</Text>
+              <Text style={styles.primaryButtonText}>{primaryAction.label}</Text>
             </Pressable>
             <View style={styles.loginRow}>
               <Text style={styles.loginText}>Sudah punya akun? </Text>
@@ -195,19 +320,135 @@ export function RegisterScreen({ onBackPress, onLoginPress }: RegisterScreenProp
   );
 }
 
+function getPhaseSubtitle(phase: RegisterPhase, email: string) {
+  if (phase === 'otp') {
+    return `Kode verifikasi dikirim ke ${email.trim() || 'email yang Anda masukkan'}.`;
+  }
+
+  if (phase === 'organization') {
+    return 'Lengkapi data organisasi sebagai bagian dari verifikasi awal.';
+  }
+
+  if (phase === 'document') {
+    return 'Siapkan dokumen verifikasi. Tahap ini masih placeholder untuk demo.';
+  }
+
+  return 'Lengkapi informasi akun untuk mendaftar sebagai Koperasi atau Pemasok.';
+}
+
 function getErrorMessage(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback;
+}
+
+type AccountFieldsProps = {
+  acceptedTerms: boolean;
+  email: string;
+  name: string;
+  onAcceptedTermsChange: (value: boolean | ((current: boolean) => boolean)) => void;
+  onEmailChange: (value: string) => void;
+  onNameChange: (value: string) => void;
+  onPasswordChange: (value: string) => void;
+  onRoleChange: (role: Role) => void;
+  password: string;
+  role: Role;
+};
+
+function AccountFields({
+  acceptedTerms,
+  email,
+  name,
+  onAcceptedTermsChange,
+  onEmailChange,
+  onNameChange,
+  onPasswordChange,
+  onRoleChange,
+  password,
+  role,
+}: AccountFieldsProps) {
+  return (
+    <>
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Nama Lengkap</Text>
+        <TextInput
+          accessibilityLabel="Nama Lengkap"
+          autoCapitalize="words"
+          onChangeText={onNameChange}
+          placeholder="Budi Santoso"
+          placeholderTextColor={colors.outlineVariant}
+          style={styles.input}
+          value={name}
+        />
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Alamat Email (Gmail)</Text>
+        <TextInput
+          accessibilityLabel="Alamat Email Gmail"
+          autoCapitalize="none"
+          inputMode="email"
+          keyboardType="email-address"
+          onChangeText={onEmailChange}
+          placeholder="contoh@gmail.com"
+          placeholderTextColor={colors.outlineVariant}
+          style={styles.input}
+          value={email}
+        />
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Kata Sandi</Text>
+        <TextInput
+          accessibilityLabel="Kata Sandi"
+          onChangeText={onPasswordChange}
+          placeholder="Minimal 8 karakter"
+          placeholderTextColor={colors.outlineVariant}
+          secureTextEntry
+          style={styles.input}
+          value={password}
+        />
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Peran Anda</Text>
+        <View style={styles.roleGrid}>
+          <RoleOption
+            description="Kelola pembelian dan pool bersama"
+            isSelected={role === 'koperasi'}
+            label="Manajer Koperasi"
+            onPress={() => onRoleChange('koperasi')}
+          />
+          <RoleOption
+            description="Terima proposal pembelian"
+            isSelected={role === 'supplier'}
+            label="Pemasok"
+            onPress={() => onRoleChange('supplier')}
+          />
+        </View>
+      </View>
+
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: acceptedTerms }}
+        onPress={() => onAcceptedTermsChange((current) => !current)}
+        style={styles.termsRow}
+      >
+        <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
+          <Text style={styles.checkboxText}>{acceptedTerms ? 'v' : ''}</Text>
+        </View>
+        <Text style={styles.termsText}>Saya menyetujui Syarat Layanan VolumeMate.</Text>
+      </Pressable>
+    </>
+  );
 }
 
 type RoleOptionProps = {
   description: string;
   isSelected: boolean;
   label: string;
-  marker: string;
   onPress: () => void;
 };
 
-function RoleOption({ description, isSelected, label, marker, onPress }: RoleOptionProps) {
+function RoleOption({ description, isSelected, label, onPress }: RoleOptionProps) {
   return (
     <Pressable
       accessibilityRole="radio"
@@ -215,16 +456,64 @@ function RoleOption({ description, isSelected, label, marker, onPress }: RoleOpt
       onPress={onPress}
       style={[styles.roleOption, isSelected && styles.roleOptionSelected]}
     >
-      <View style={[styles.roleMarker, isSelected && styles.roleMarkerSelected]}>
-        <Text style={[styles.roleMarkerText, isSelected && styles.roleMarkerTextSelected]}>
-          {marker}
-        </Text>
-      </View>
       <Text style={styles.roleLabel}>{label}</Text>
       <Text style={styles.roleDescription}>{description}</Text>
     </Pressable>
   );
 }
+
+type FileUploadFieldProps = {
+  accept: string;
+  fileName: string;
+  label: string;
+  onFileChange: (fileName: string) => void;
+  placeholder: string;
+};
+
+const hiddenInputStyle: CSSProperties = {
+  display: 'none',
+};
+
+function FileUploadField({ accept, fileName, label, onFileChange, placeholder }: FileUploadFieldProps) {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    onFileChange(file?.name || '');
+  };
+
+  return (
+    <View style={styles.fileFieldGroup}>
+      <Text style={styles.mockUploadLabel}>{label}</Text>
+      <label style={fileUploadButtonStyle}>
+        <input accept={accept} onChange={handleChange} style={hiddenInputStyle} type="file" />
+        <span style={fileUploadTextStyle}>{fileName || placeholder}</span>
+      </label>
+    </View>
+  );
+}
+
+const fileUploadButtonStyle: CSSProperties = {
+  alignItems: 'center',
+  backgroundColor: colors.background,
+  border: `1px dashed ${colors.primary}`,
+  borderRadius: 10,
+  boxSizing: 'border-box',
+  cursor: 'pointer',
+  display: 'flex',
+  minHeight: 52,
+  padding: '12px 14px',
+  width: '100%',
+};
+
+const fileUploadTextStyle: CSSProperties = {
+  color: colors.primary,
+  fontFamily: fonts.body,
+  fontSize: 12,
+  fontWeight: 700,
+  lineHeight: '16px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+};
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -297,31 +586,24 @@ const styles = StyleSheet.create({
     minHeight: 56,
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: 24,
-    position: 'relative',
-  },
-  progressLine: {
-    position: 'absolute',
-    left: 22,
-    right: 22,
-    top: 16,
-    height: 2,
-    backgroundColor: colors.surfaceVariant,
-  },
-  progressFill: {
-    position: 'absolute',
-    left: 22,
-    top: 16,
-    width: '33%',
-    height: 2,
-    backgroundColor: colors.primary,
   },
   stepItem: {
     alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
     gap: 4,
+    width: 64,
+  },
+  stepConnector: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.surfaceVariant,
+    height: 2,
+    marginHorizontal: 2,
+    marginTop: 16,
+    width: 92,
+  },
+  stepConnectorActive: {
+    backgroundColor: colors.primary,
   },
   stepCircle: {
     width: 32,
@@ -385,38 +667,18 @@ const styles = StyleSheet.create({
   },
   roleOption: {
     flex: 1,
-    minHeight: 132,
+    minHeight: 92,
     alignItems: 'center',
     justifyContent: 'center',
     borderColor: colors.outline,
     borderRadius: 12,
     borderWidth: 1,
-    gap: 8,
+    gap: 7,
     padding: 12,
   },
   roleOptionSelected: {
     backgroundColor: 'rgba(174, 238, 203, 0.2)',
     borderColor: colors.primary,
-  },
-  roleMarker: {
-    width: 34,
-    height: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceContainerLow,
-    borderRadius: 17,
-  },
-  roleMarkerSelected: {
-    backgroundColor: colors.primary,
-  },
-  roleMarkerText: {
-    color: colors.primary,
-    fontFamily: fonts.heading,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  roleMarkerTextSelected: {
-    color: colors.onPrimary,
   },
   roleLabel: {
     color: colors.onSurface,
@@ -470,6 +732,101 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 12,
     lineHeight: 18,
+  },
+  otpCard: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceContainerLowest,
+    borderColor: colors.outlineVariant,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 12,
+    padding: 18,
+  },
+  otpIcon: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.secondaryContainer,
+    borderRadius: 24,
+  },
+  otpIconText: {
+    color: colors.primary,
+    fontFamily: fonts.heading,
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  otpTitle: {
+    color: colors.onSurface,
+    fontFamily: fonts.heading,
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 26,
+  },
+  otpSubtitle: {
+    color: colors.onSurfaceVariant,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
+  otpInput: {
+    letterSpacing: 4,
+    textAlign: 'center',
+    width: '100%',
+  },
+  placeholderCard: {
+    backgroundColor: colors.surfaceContainerLowest,
+    borderColor: colors.outlineVariant,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 14,
+    padding: 16,
+  },
+  placeholderTitle: {
+    color: colors.onSurface,
+    fontFamily: fonts.heading,
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 26,
+  },
+  placeholderCopy: {
+    color: colors.onSurfaceVariant,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  fileFieldGroup: {
+    gap: 10,
+  },
+  mockUploadLabel: {
+    color: colors.primary,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 16,
+  },
+  reviewBox: {
+    backgroundColor: colors.secondaryContainer,
+    borderRadius: 10,
+    gap: 4,
+    padding: 12,
+  },
+  reviewLabel: {
+    color: colors.primary,
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    lineHeight: 14,
+    textTransform: 'uppercase',
+  },
+  reviewText: {
+    color: colors.primary,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 17,
   },
   footerActions: {
     gap: 14,
