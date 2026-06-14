@@ -179,23 +179,6 @@ export function LoginScreen({
 
           {notice ? <Text style={styles.notice}>{notice}</Text> : null}
 
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>atau</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setNotice('Metode masuk Google memerlukan konfigurasi OAuth2.')}
-            style={styles.googleButton}
-          >
-            <View style={styles.googleMark}>
-              <Text style={styles.googleMarkText}>G</Text>
-            </View>
-            <Text style={styles.googleButtonText}>Lanjutkan dengan Google</Text>
-          </Pressable>
-
           <View style={styles.registerRow}>
             <Text style={styles.registerText}>Belum punya akun? </Text>
             <Pressable accessibilityRole="link" onPress={onRegisterPress}>
@@ -330,51 +313,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
-  },
-  dividerRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.outlineVariant,
-  },
-  dividerText: {
-    color: colors.outline,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  googleButton: {
-    minHeight: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    backgroundColor: colors.surfaceContainerLowest,
-    borderColor: colors.outlineVariant,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  googleMark: {
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  googleMarkText: {
-    color: colors.errorRed,
-    fontFamily: fonts.heading,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  googleButtonText: {
-    color: colors.onSurface,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    lineHeight: 24,
   },
   registerRow: {
     alignItems: 'center',
