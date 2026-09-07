@@ -289,6 +289,25 @@ const mapDbAuditLogToSupplierAuditLog = (log: any): SupplierAuditLog | null => {
       };
     }
 
+    if (log.action === 'JOIN_POOL') {
+      const totalVolumeKg = Number(details.totalVolumeKg) || 0;
+      const activePricePerKg = Number(details.activePricePerKg) || 0;
+      const estimatedTotal = totalVolumeKg * activePricePerKg;
+      const poolId = String(details.poolId || '').substring(0, 8).toUpperCase();
+
+      return {
+        ...baseLog,
+        cooperative:
+          details.cooperativeName || log.user?.name || 'Koperasi Mitra',
+        product: details.productName || 'Partisipasi Pool Kolektif',
+        amount: `${totalVolumeKg.toLocaleString('id-ID')} Kg`,
+        total: estimatedTotal > 0 ? `Rp ${estimatedTotal.toLocaleString('id-ID')}` : '-',
+        status: 'SUCCESS',
+        statusTone: 'success',
+        note: `Bergabung ke Pool #${poolId || '-'} dengan harga tier Rp ${activePricePerKg.toLocaleString('id-ID')}/kg.`,
+      };
+    }
+
     if (log.action === 'CONFIRM_ORDER') {
       return {
         ...baseLog,
@@ -331,17 +350,25 @@ const mapDbAuditLogToSupplierAuditLog = (log: any): SupplierAuditLog | null => {
     return {
       ...baseLog,
       cooperative: log.user?.name || 'User',
-      product: log.action,
+      product: formatAuditAction(log.action),
       amount: '-',
       total: '-',
       status: 'SUCCESS',
       statusTone: 'success',
-      note: log.details,
+      note: 'Aktivitas tercatat oleh sistem VolumeMate.',
     };
   } catch (e) {
     return null;
   }
 };
+
+function formatAuditAction(action: string) {
+  return action
+    .toLowerCase()
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 export function SupplierMenuScreen({ onLogoutPress }: SupplierMenuScreenProps) {
   const { height } = useWindowDimensions();
@@ -668,16 +695,16 @@ export function SupplierMenuScreen({ onLogoutPress }: SupplierMenuScreenProps) {
             const isActive = item.key === activeMenu;
 
             return (
-            <Pressable
-              accessibilityRole="button"
-              key={item.key}
-              onPress={() => setActiveMenu(item.key as SupplierMenu)}
-              style={styles.navItem}
-            >
-              {isActive ? <View style={styles.activeDot} /> : null}
-              <SupplierNavIcon index={index} isActive={isActive} />
-              <Text style={[styles.navText, isActive && styles.navTextActive]}>{item.label}</Text>
-            </Pressable>
+              <Pressable
+                accessibilityLabel={item.label}
+                accessibilityRole="button"
+                key={item.key}
+                onPress={() => setActiveMenu(item.key as SupplierMenu)}
+                style={styles.navItem}
+              >
+                {isActive ? <View style={styles.activePill} /> : null}
+                <SupplierNavIcon index={index} isActive={isActive} />
+              </Pressable>
             );
           })}
         </View>
@@ -788,7 +815,11 @@ function SupplierAuditLogCard({ log }: { log: SupplierAuditLog }) {
         <Text style={styles.auditMeta}>
           ID: {log.id} - Vol: {log.amount}
         </Text>
-        {log.note ? <Text style={styles.auditNote}>{log.note}</Text> : null}
+        {log.note ? (
+          <Text style={[styles.auditNote, log.statusTone === 'success' && styles.auditNoteSuccess]}>
+            {log.note}
+          </Text>
+        ) : null}
         <View style={styles.auditFooter}>
           <Text style={[styles.auditTotal, log.total === '-' && styles.auditTotalMuted]}>{log.total}</Text>
           <Text style={styles.auditDate}>{log.date}</Text>
@@ -1673,6 +1704,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 5,
   },
+  auditNoteSuccess: {
+    backgroundColor: 'rgba(43, 147, 72, 0.08)',
+    color: colors.successGreen,
+  },
   auditFooter: {
     alignItems: 'center',
     borderTopColor: colors.surfaceVariant,
@@ -1717,34 +1752,34 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    minHeight: 64,
+    bottom: 12,
+    left: 18,
+    right: 18,
+    height: 64,
     alignItems: 'center',
     flexDirection: 'row',
     backgroundColor: colors.surfaceContainerLowest,
-    borderTopColor: 'rgba(193, 200, 194, 0.5)',
-    borderTopWidth: 1,
+    borderColor: colors.secondary,
+    borderRadius: 999,
+    borderWidth: 1,
     justifyContent: 'space-around',
-    paddingHorizontal: 12,
-    boxShadow: '0 -4px 12px rgba(27, 67, 50, 0.05)',
+    paddingHorizontal: 14,
+    boxShadow: '0 8px 15px rgba(96, 76, 49, 0.35)',
   },
   navItem: {
     flex: 1,
-    minHeight: 58,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
     position: 'relative',
   },
-  activeDot: {
+  activePill: {
     position: 'absolute',
-    bottom: 5,
-    width: 5,
-    height: 5,
-    backgroundColor: colors.primary,
-    borderRadius: 3,
+    width: 58,
+    height: 58,
+    backgroundColor: '#e8e2e2',
+    borderRadius: 999,
+    boxShadow: '0 7px 12px rgba(96, 76, 49, 0.22)',
   },
   homeIcon: {
     width: 22,
@@ -1828,17 +1863,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 2,
     borderRadius: 1,
-  },
-  navText: {
-    color: colors.onSurfaceVariant,
-    fontFamily: fonts.body,
-    fontSize: 11,
-    fontWeight: '500',
-    lineHeight: 14,
-  },
-  navTextActive: {
-    color: colors.secondary,
-    fontWeight: '800',
   },
   modalOverlay: {
     position: 'absolute',

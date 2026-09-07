@@ -118,3 +118,29 @@ Key relationships:
 - Old docs specify account approval fields and document uploads; current API does not.
 - Several mutating endpoints are unauthenticated and should be reviewed before production.
 
+
+## Review Findings - 2026-09-07
+
+Static inspection confirms public /users responses return complete User objects, including password; /orders/audit-logs includes complete related users. Public POST /users passes raw Prisma input directly to create, bypassing auth registration hashing/role restrictions. No global auth guard or validation pipe was found. These are unresolved production blockers, not runtime exploit tests.
+
+Pool join does not validate order-product compatibility or ownership, performs sequential writes without a database transaction, and returns the order captured before repricing. Pool finalization uses a fixed 10000 kg target. Registration still accepts only name/email/password/role; organization, document upload, OTP and reset contracts are absent.
+
+## Portfolio Demo Auth Contract - 2026-09-07
+
+`POST /auth/demo-login`
+
+Request:
+
+```json
+{ "role": "koperasi" }
+```
+
+Allowed role values are `koperasi` and `supplier`. The response matches `/auth/login`: `{ user, access_token }`, with the password removed. Koperasi prefers the oldest `ADMIN_KOPERASI` user and falls back to the oldest `ANGGOTA`; Supplier uses the oldest `SUPPLIER` user. Invalid roles or missing matching accounts return HTTP 400.
+
+This endpoint performs no credential check. It exists solely for a local portfolio demo and is a production security blocker.
+
+## Portfolio Data Contract - 2026-09-07
+
+`backend/prisma/portfolio-demo-data.ts` adds three named ACTIVE pools with one PENDING participation order each, matching products and price tiers, plus audit logs whose JSON `details` contain `portfolioDemo: true` and a unique `demoKey`. Idempotency is based on pool names, existing pool/Koperasi orders, exact product/Supplier pairs, and audit `demoKey` markers.
+
+The pending proposal remains a frontend-local contract under `volumemate_proposals`; Admin Koperasi login adds a PENDING NPK proposal matching `user.koperasi.name` when one is not already present.

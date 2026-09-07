@@ -44,6 +44,7 @@ Role routing:
 |---|---|
 | `MainHeader` | Shared top bar/logout. |
 | `KoperasiBottomNav` | Koperasi bottom navigation. |
+| Supplier inline bottom navigation | `MenuScreen.tsx` two-action Proposal/Audit bar; visually matches `KoperasiBottomNav`. |
 | `BrandMark` | VolumeMate brand mark. |
 | `PoolCard` | Pool card component. |
 
@@ -89,3 +90,39 @@ Role routing:
 | Admin flow wrong | Approval list and review sheet. |
 | Audit/export wrong | Manual tab, pool tab, network response for export. |
 
+
+## Current Auth UI Additions - 2026-09-07
+
+RegisterScreen now has account, OTP, organization and document steps. OtpVerificationCard.tsx is shared with the forgot-password flow in LoginScreen. Any nonempty OTP is accepted locally. Organization/contact/document selections are not included in the registration API request. Forgot-password shows a demo success notice but makes no reset API call. These screens do not establish email verification or persist a changed password.
+
+## Portfolio Login UI - 2026-09-07
+
+The current `#login` page supersedes the older auth UI note above. It contains exactly three primary actions:
+
+| Button | Destination | Session Type |
+|---|---|---|
+| Admin Koperasi | `#koperasi` | Real JWT from `POST /auth/demo-login` |
+| Supplier | `#supplier` | Real JWT from `POST /auth/demo-login` |
+| Admin | `#admin` | Local static demo session |
+
+Credential entry, forgot-password, and registration navigation are no longer rendered on `LoginScreen`. `RegisterScreen` and `OtpVerificationCard` remain in the repository but are not linked from the current login gateway.
+
+## Populated Portfolio States - 2026-09-07
+
+- `#koperasi`: first active pool displays 6.5/10.0 tons (65%); pending supplier section displays a 10,000 kg NPK proposal valued at Rp85,000,000.
+- `#kolektif`: Pool Terbuka displays NPK, Urea, and SP-36 pool cards with 65%, 42%, and 78% progress.
+- `#log` → Transaksi Manual: two incoming transactions and one outgoing distribution render.
+- `#log` → Riwayat Pool: two successful join-pool records render.
+
+## Supplier Audit Card Rules - 2026-09-07
+
+- Never render the raw backend `AuditLog.details` JSON in a card.
+- `JOIN_POOL` renders product and cooperative names, formatted volume/total, short pool ID, and tier price.
+- Successful explanatory notes use a pale-green background and green text; declined/error notes use the existing red treatment.
+- Unknown actions use a title-cased action name and generic “Aktivitas tercatat” message.
+
+## Supplier Navigation Rules - 2026-09-07
+
+- The Supplier screen has exactly two bottom actions: Proposal and Audit Log.
+- Its bar uses the same inset floating capsule, green border, shadow, and circular active state as `KoperasiBottomNav`.
+- Visible text labels are omitted to match the Koperasi bar; `accessibilityLabel` remains present for both actions.

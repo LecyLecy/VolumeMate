@@ -64,3 +64,41 @@ The project is in active development. The Koperasi flow is the most real: login,
 - Old docs mention RandomForest; current `VolumeMind/train.py` uses `GradientBoostingRegressor`.
 - Old docs mention Expo/Supabase; current repo uses Vite/NestJS/Prisma.
 
+
+## Latest Review - 2026-09-07
+
+Repository read access verified: https://github.com/LecyLecy/VolumeMate (fetch and ls-remote succeeded). Branch dev equals origin/dev at 0cc3a53; push access untested. No application edits, commits, pushes, or merges.
+
+Both builds pass. Frontend lint: 36 errors/3 warnings. Backend lint without --fix: 13 errors. One starter backend unit test passes. Four Python files pass AST syntax parsing. No live database/browser/AI integration verification.
+
+Prioritize securing users/audit responses and public mutations, then atomic pool repricing/product checks. Inspect backend/src/users/users.controller.ts, users.service.ts, backend/src/order/order.controller.ts and order.service.ts. Ask for sanitized API status/response field names only, never password values or tokens. OTP and forgot-password are frontend demos; registration organization/documents are not persisted. Inspect LoginScreen.tsx, RegisterScreen.tsx and OtpVerificationCard.tsx for those flows.
+
+Memory docs updated: 02, 03, 04, 06, 07, 08, 09, 10. Existing docs/old references are historical: that directory is absent in this checkout. Generated review output remains in .review-build/frontend because cleanup was blocked by command policy. Next agent should read this section before older history above.
+
+## Latest Portfolio Handoff - 2026-09-07
+
+VolumeMate is now oriented toward portfolio documentation rather than continued product development. The login screen was replaced with three one-click demo buttons: Admin Koperasi, Supplier, and Admin. Admin Koperasi/Supplier use the new passwordless `POST /auth/demo-login` endpoint to select the first existing user for that role and issue a real JWT; Admin uses the existing local static session.
+
+Files changed in this task: `frontend/src/screens/LoginScreen.tsx`, `frontend/src/services/api.ts`, `backend/src/auth/auth.controller.ts`, `backend/src/auth/auth.service.ts`, plus memory docs 02/03/04/06/07/08/09/10. Frontend and backend builds pass; targeted frontend and backend lint pass. Browser verification confirmed all three buttons and destinations with no console warnings/errors. VolumeMind runs under Python 3.13 after installing its required packages.
+
+Local services were left running at frontend `http://127.0.0.1:5173/`, backend `http://127.0.0.1:3000/`, and VolumeMind `http://127.0.0.1:8000/docs`. PostgreSQL service is running. Never expose this build publicly while `/auth/demo-login` exists; it is an intentional portfolio-only authentication bypass.
+
+Full-project lint still fails on the existing baseline: frontend 35 errors/3 warnings and backend 13 errors. The files changed for demo login pass targeted lint, both builds pass, and the starter backend test passes.
+
+## Latest Dummy-Data Handoff - 2026-09-07
+
+The three previously empty portfolio areas are populated. Run `cd backend && npm run demo:data` to safely restore them without deleting existing records. The script is idempotent and was successfully run twice: the UI still showed exactly three active pools and five relevant audit entries rather than duplicates. Admin Koperasi login also creates one browser-local pending NPK proposal for the active Koperasi when absent.
+
+New/updated implementation files: `backend/prisma/portfolio-demo-data.ts`, `backend/package.json`, `frontend/src/screens/LoginScreen.tsx`, `frontend/src/services/api.ts`, and `frontend/src/screens/KoperasiDashboardScreen.tsx`. Browser verification confirmed Dashboard, Collective Buying, Manual Audit, and Pool History content. Frontend/backend builds pass; targeted changed-file lint passes except `KoperasiDashboardScreen.tsx` retains five pre-existing lint errors unrelated to the changed fallback target.
+
+## Latest Supplier Audit Fix - 2026-09-07
+
+Fixed the Supplier Audit card shown in the user screenshot. `frontend/src/screens/MenuScreen.tsx` now maps `JOIN_POOL` to a readable card and never uses raw `log.details` as fallback UI copy. Successful notes are styled green instead of red. `backend/prisma/portfolio-demo-data.ts` now refreshes existing portfolio audit details and includes `productName`/`cooperativeName` for pool joins.
+
+Ran `npm run demo:data` to synchronize existing local dummy records. Browser verification showed `Pupuk NPK Phonska`, `Koperasi Smoke Test`, `6.500 Kg`, `Rp 59.800.000`, and a readable pool/tier sentence; no raw JSON remained. Frontend/backend builds pass. `MenuScreen.tsx` still has its pre-existing lint debt (14 errors/1 warning), none introduced by this fix.
+
+## Latest Supplier Navigation Fix - 2026-09-07
+
+The Supplier screen bottom navigation in `frontend/src/screens/MenuScreen.tsx` now matches the Admin Koperasi floating navigation design: an inset pill-shaped white surface with green border, brown shadow, and a 58px circular selected state. It has exactly two icon-only actions, Proposal and Audit Log, with accessible labels retained.
+
+`npm run build` in `frontend/` passed. Live mobile-width browser inspection confirmed the new bar renders correctly and exposes both buttons. The browser-control click used to switch tabs timed out, so tab switching was not re-exercised visually; the existing unchanged `setActiveMenu` handlers compile. Targeted lint still reports the same `MenuScreen.tsx` baseline of 14 errors and one warning in unrelated legacy code.

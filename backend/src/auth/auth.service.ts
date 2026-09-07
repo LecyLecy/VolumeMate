@@ -6,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -114,6 +114,53 @@ export class AuthService {
 
     const { password: _, ...userWithoutPassword } = user;
     void _;
+    return {
+      user: userWithoutPassword,
+      access_token: token,
+    };
+  }
+
+  async demoLogin(roleInput: string) {
+    let user: Prisma.UserGetPayload<{
+      include: { koperasi: true; supplier: true };
+    }> | null;
+
+    if (roleInput === 'koperasi') {
+      user =
+        (await this.prisma.user.findFirst({
+          where: { role: Role.ADMIN_KOPERASI },
+          include: { koperasi: true, supplier: true },
+          orderBy: { createdAt: 'asc' },
+        })) ||
+        (await this.prisma.user.findFirst({
+          where: { role: Role.ANGGOTA },
+          include: { koperasi: true, supplier: true },
+          orderBy: { createdAt: 'asc' },
+        }));
+    } else if (roleInput === 'supplier') {
+      user = await this.prisma.user.findFirst({
+        where: { role: Role.SUPPLIER },
+        include: { koperasi: true, supplier: true },
+        orderBy: { createdAt: 'asc' },
+      });
+    } else {
+      throw new BadRequestException('Role demo tidak valid');
+    }
+
+    if (!user) {
+      throw new BadRequestException(`Akun demo ${roleInput} belum tersedia`);
+    }
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+    const token = await this.jwtService.signAsync(payload);
+    const { password: _, ...userWithoutPassword } = user;
+    void _;
+
     return {
       user: userWithoutPassword,
       access_token: token,

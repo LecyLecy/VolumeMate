@@ -34,6 +34,12 @@ export class AuthController {
     return this.authService.login(email, passwordString);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('demo-login')
+  async demoLogin(@Body('role') role: string) {
+    return this.authService.demoLogin(role);
+  }
+
   @UseGuards(AuthGuard)
   @Get('me')
   async getProfile(@Request() req: { user: { sub: string } }) {

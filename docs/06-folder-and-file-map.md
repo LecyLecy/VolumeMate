@@ -56,3 +56,51 @@
 | CSV export fails | Auth/export route | `AuditLogScreen.tsx`, `api.ts`, `order.controller.ts`, `auth.guard.ts` | Export URL, response body, token source. |
 | Backend crashes on startup | Env/Prisma | `prisma.service.ts`, `backend/.env.example`, `schema.prisma` | Terminal log, environment variable names, database availability. |
 
+
+## Review Additions - 2026-09-07
+
+| Bug Symptom | Likely Area | Likely Files | What To Ask User For |
+|---|---|---|---|
+| OTP accepts arbitrary input; password reset has no effect | Demo frontend flows | frontend/src/components/OtpVerificationCard.tsx, frontend/src/screens/LoginScreen.tsx, frontend/src/screens/RegisterScreen.tsx | Steps and sanitized network request list |
+| User/audit API exposes password fields | Public controllers and unrestricted Prisma result | backend/src/users/users.controller.ts, backend/src/users/users.service.ts, backend/src/order/order.service.ts | Response field names and status only; redact credentials |
+| Pool prices partially updated or wrong product accepted | Non-atomic join/repricing | backend/src/order/order.service.ts | Pool/product/order IDs and sanitized before/after values |
+
+Historical correction: docs/old does not exist in this checkout. Historical docs may be retrieved from Git history. .review-build/frontend contains generated review build output, not application source.
+
+## Portfolio Demo Access - 2026-09-07
+
+| Feature | Frontend Files | Backend Files | Database/API Files | Notes |
+|---|---|---|---|---|
+| Three-role demo gateway | `frontend/src/screens/LoginScreen.tsx`, `frontend/src/App.tsx`, `frontend/src/services/api.ts` | `backend/src/auth/auth.controller.ts`, `backend/src/auth/auth.service.ts` | `User`, `Role`, `POST /auth/demo-login` | Koperasi/Supplier use the first existing matching user; Admin is frontend-only/static. |
+
+| Bug Symptom | Likely Area | Likely Files | What To Ask User For |
+|---|---|---|---|
+| Demo button says matching account is unavailable | Demo auth/database | `auth.service.ts`, `schema.prisma` | Sanitized role counts from the database; do not request passwords. |
+| Demo button fails to open | Local services/API | `LoginScreen.tsx`, `api.ts`, `auth.controller.ts` | Browser Network response and backend log. |
+
+## Portfolio Dummy Data - 2026-09-07
+
+| Feature | Frontend Files | Backend Files | Database/API Files | Notes |
+|---|---|---|---|---|
+| Portfolio data population | `LoginScreen.tsx`, `KoperasiDashboardScreen.tsx` | `backend/prisma/portfolio-demo-data.ts`, `backend/package.json` | `Product`, `PriceTier`, `CollectivePool`, `Order`, `OrderItem`, `AuditLog`; browser `volumemate_proposals` | Additive and idempotent; run `npm run demo:data` from `backend/`. |
+
+| Bug Symptom | Likely Area | Likely Files | What To Ask User For |
+|---|---|---|---|
+| Portfolio pool/audit cards are empty | Demo database state | `portfolio-demo-data.ts`, `schema.prisma`, relevant screen | Output of `npm run demo:data`, backend log, screenshot after reload. |
+| Dashboard proposal remains empty | Browser demo state | `LoginScreen.tsx`, `KoperasiDashboardScreen.tsx` | Whether Admin Koperasi button was used after logout; `volumemate_proposals` presence, not uploaded PDF data. |
+
+## Supplier Audit Display Fix - 2026-09-07
+
+| Bug Symptom | Likely Area | Likely Files | What To Ask User For |
+|---|---|---|---|
+| Supplier audit displays raw JSON or technical action names | Frontend audit mapping/demo metadata | `frontend/src/screens/MenuScreen.tsx`, `backend/prisma/portfolio-demo-data.ts` | Screenshot of the card, action name, and sanitized `details` field structure. |
+
+## Supplier Bottom Navigation - 2026-09-07
+
+| Feature | Frontend Files | Backend Files | Database/API Files | Notes |
+|---|---|---|---|---|
+| Supplier Proposal/Audit navigation | `frontend/src/screens/MenuScreen.tsx`; visual reference: `frontend/src/components/KoperasiBottomNav.tsx` | None | None | Two icon-only actions using the same floating capsule design as Admin Koperasi. |
+
+| Bug Symptom | Likely Area | Likely Files | What To Ask User For |
+|---|---|---|---|
+| Supplier bottom bar looks flat, touches screen edges, or has extra actions | Supplier navigation markup/styles | `frontend/src/screens/MenuScreen.tsx`, compare with `frontend/src/components/KoperasiBottomNav.tsx` | Mobile-width screenshot showing the full bottom bar and active tab. |

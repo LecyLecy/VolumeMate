@@ -52,3 +52,40 @@
 9. Compare current code to old docs only after confirming current implementation.
 10. Update the docs after any meaningful fix or decision.
 
+
+## Static Review Findings - 2026-09-07 (Unfixed)
+
+- Public user reads and audit logs return password fields through unrestricted Prisma results. Public user creation also accepts raw Prisma input, bypassing normal registration hashing/role restrictions. Inspect users.controller.ts, users.service.ts and order.service.ts. No global guard found. Ask only for sanitized response field names/status, not secret values.
+- Pool join lacks ownership and matching-product checks; reprices multiple records without a transaction and returns a pre-repricing object. Concurrent joins/failures can leave inconsistent state. Inspect order.service.ts; reproduce later with isolated test data, not production orders.
+- Manual product lookup matches name without supplier filtering, so an existing product from another supplier can be selected. Inspect findOrCreateProduct in order.service.ts.
+- OTP accepts any nonempty input; password reset only shows a demo notice. Registration organization/documents are not submitted. Repro: follow these forms and inspect the network request list; no OTP/reset request exists. Inspect LoginScreen.tsx, RegisterScreen.tsx, OtpVerificationCard.tsx.
+- Lint baseline: frontend 36 errors/3 warnings, backend 13 errors; builds and one starter unit test pass. No fixes attempted; do not treat passing builds as integration validation.
+- docs/old is absent locally and untracked on dev despite old documentation claims; retrieve historical material from Git history if needed.
+- Generated .review-build/frontend remains after command-policy rejection of cleanup. No application source changes made.
+
+## Portfolio Demo Security Warning - 2026-09-07
+
+- `POST /auth/demo-login` intentionally issues a valid JWT without checking a password. This is acceptable only for the requested local portfolio walkthrough.
+- Do not deploy or expose the current backend to a public network. Before any public deployment, remove this endpoint or protect it behind an explicit, disabled-by-default demo environment flag and non-sensitive demo-only data.
+- The Admin button still uses a fake local token and the Admin approval page remains static; it cannot call protected backend endpoints.
+- If a Koperasi or Supplier demo button reports that no account exists, create only disposable demo data or inspect role counts. Do not reset, reseed, or delete an existing database without explicit approval.
+- Current lint baseline is frontend 35 errors/3 warnings and backend 13 errors; none are in the changed demo-login files.
+
+## Portfolio Dummy-Data Notes - 2026-09-07
+
+- The database dummy-data command is idempotent but depends on at least one existing Koperasi-linked user and Supplier-linked user.
+- Proposal dummy data is browser-local. Clearing site storage removes it; choosing Admin Koperasi again restores one matching pending proposal.
+- Pool target volume is still not stored in Prisma; portfolio cards consistently use a 10,000 kg frontend fallback.
+- If content is empty, run `backend/npm run demo:data`, check for its success message, log out/in through Admin Koperasi, and reload. Do not run the destructive legacy seed against a database containing data worth preserving.
+
+## Supplier Audit Raw JSON - Resolved 2026-09-07
+
+- Cause: `mapDbAuditLogToSupplierAuditLog` had no `JOIN_POOL` branch and its generic fallback assigned raw `log.details` to the visible note.
+- Fix: explicit `JOIN_POOL` mapping, human-readable generic fallback, success-note styling, and synchronized dummy metadata.
+- Verified: refreshed Supplier Audit shows product/cooperative/volume/value/tier information with no `portfolioDemo` or `demoKey` JSON visible.
+
+## Supplier Bottom Bar Mismatch - Resolved 2026-09-07
+
+- Cause: `MenuScreen.tsx` used a separate full-width, labeled bottom bar instead of the established floating Admin Koperasi navigation treatment.
+- Fix: copied the `KoperasiBottomNav` container and active-state design into the existing two-action Supplier navigation while preserving Proposal/Audit behavior.
+- Verified: frontend production build passed and live mobile-width rendering shows the floating two-icon capsule. Browser automation timed out while attempting the Audit Log click, so re-check both active states manually if future navigation behavior changes.

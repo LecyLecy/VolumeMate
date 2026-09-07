@@ -144,3 +144,49 @@ python train.py
 - Do not delete or modify remote branches without explicit approval.
 - Do not push anything unless explicitly asked.
 
+
+## Verified Review Commands - 2026-09-07
+
+- frontend: npm run build -- --outDir ../.review-build/frontend passed (separate output avoids overwriting tracked dist).
+- frontend: npm run lint failed: 36 errors, 3 warnings, including an unreachable duplicate branch in LoginScreen.tsx.
+- backend: npm run build passed; npm test -- --runInBand passed one starter test.
+- backend: npx --no-install eslint "{src,apps,libs,test}/**/*.ts" failed: 13 errors (test type resolution and formatting). Used read-only invocation because npm run lint includes --fix.
+- Python AST parsing passed for all four .py files; model loading/inference and dependency compatibility not tested.
+- No live database or browser end-to-end checks performed.
+- Correction: backend/package.json has no scripts.seed. Seed is configured in prisma.config.ts; use npx prisma db seed only deliberately on a disposable/demo database. Not run during review.
+- .review-build/frontend generated output remains because cleanup command was blocked by policy.
+
+## Portfolio Demo Runtime - 2026-09-07
+
+Verified local endpoints:
+
+- Frontend: `http://127.0.0.1:5173/`
+- Backend: `http://127.0.0.1:3000/`
+- VolumeMind API docs: `http://127.0.0.1:8000/docs`
+
+VolumeMind dependencies were installed for Python 3.13 with:
+
+```powershell
+py -3.13 -m pip install fastapi uvicorn pandas joblib scikit-learn
+```
+
+Run VolumeMind with Python 3.13 on this machine because the default `python` command points to Python 3.8 without the required packages:
+
+```powershell
+py -3.13 -m uvicorn api:app --host 127.0.0.1 --port 8000
+```
+
+The portfolio buttons require at least one existing Koperasi-role user and one Supplier-role user, but do not require their passwords.
+
+Latest full checks: frontend lint reports 35 errors/3 warnings in existing non-login files; backend lint reports the same 13 pre-existing errors. Targeted lint for `LoginScreen.tsx`, `api.ts`, and `backend/src/auth/*.ts` passes. Both builds and the single backend starter unit test pass.
+
+## Populate Portfolio Data - 2026-09-07
+
+Use the additive portfolio command, not the destructive full seed:
+
+```powershell
+cd backend
+npm run demo:data
+```
+
+The command requires existing Koperasi and Supplier demo accounts and may be safely rerun. It does not delete records. After running, log out, choose Admin Koperasi again so the browser-local pending proposal is initialized, then reload the target screen if it was already open.
