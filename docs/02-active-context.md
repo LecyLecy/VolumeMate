@@ -106,3 +106,9 @@ Likely active areas:
 - The Supplier bar intentionally contains only two icon actions: Proposal and Audit Log. Their labels remain available to accessibility APIs.
 - The change is presentation-only in `frontend/src/screens/MenuScreen.tsx`; supplier state and navigation behavior are unchanged.
 - Frontend production build passed. Live mobile-width rendering was visually verified; an automated Audit Log click timed out at the browser-control layer.
+
+## 2026-09-07 GitHub Publication (Current)
+
+- All requested source, portfolio demo data, documentation, and existing `.review-build/` artifacts were committed and pushed to `origin/dev`.
+- Commit: `59edf91 feat(portfolio): add demo access and sample data`.
+- No merge to `main` was requested or performed.

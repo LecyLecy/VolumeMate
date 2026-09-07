@@ -102,3 +102,7 @@ Ran `npm run demo:data` to synchronize existing local dummy records. Browser ver
 The Supplier screen bottom navigation in `frontend/src/screens/MenuScreen.tsx` now matches the Admin Koperasi floating navigation design: an inset pill-shaped white surface with green border, brown shadow, and a 58px circular selected state. It has exactly two icon-only actions, Proposal and Audit Log, with accessible labels retained.
 
 `npm run build` in `frontend/` passed. Live mobile-width browser inspection confirmed the new bar renders correctly and exposes both buttons. The browser-control click used to switch tabs timed out, so tab switching was not re-exercised visually; the existing unchanged `setActiveMenu` handlers compile. Targeted lint still reports the same `MenuScreen.tsx` baseline of 14 errors and one warning in unrelated legacy code.
+
+## GitHub Publication - 2026-09-07
+
+All accumulated work was committed and pushed to `origin/dev` in `59edf91 feat(portfolio): add demo access and sample data`. This includes the portfolio login gateway, passwordless local-only demo route, populated demo-data script, Supplier audit/navigation fixes, ten memory docs, and the pre-existing `.review-build/` verification artifacts. `main` was not modified or merged.

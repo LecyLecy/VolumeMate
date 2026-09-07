@@ -155,3 +155,14 @@ Tests/checks:
 
 Decision:
 - Reuse the Admin Koperasi navigation dimensions and visual tokens directly in the Supplier screen while keeping its two-item information architecture.
+
+### 2026-09-07 - Commit And Push Portfolio Changes
+
+Summary:
+- Committed all accumulated requested files, including pre-existing `.review-build/` frontend verification output, then pushed the result to `origin/dev`.
+
+Commit:
+- `59edf91 feat(portfolio): add demo access and sample data`
+
+Decision:
+- Keep `main` untouched; the user authorized a push, not a merge or direct publication of the deploy-ready branch.
