@@ -119,3 +119,8 @@ Likely active areas:
 - Before the merge, the working tree was clean; `dev` was six commits ahead of `origin/main`, and `origin/main` had no unique commits.
 - Frontend production build passed using a temporary output folder. Backend build and its starter Jest suite also passed.
 - Known portfolio limitation remains: the local-only passwordless `POST /auth/demo-login` endpoint and baseline lint debt will be present on `main` after the requested promotion.
+
+## 2026-09-15 Main Promotion Complete (Current)
+
+- `dev` was merged cleanly into local `main` with merge commit `be3d684 merge: promote portfolio updates to main`.
+- The merge will be pushed to `origin/main` after this handoff record is committed.

@@ -110,3 +110,7 @@ All accumulated work was committed and pushed to `origin/dev` in `59edf91 feat(p
 ## Pending Main Promotion - 2026-09-15
 
 The user explicitly requested a merge and push to `main`. Before promotion, `dev` was clean and six commits ahead of `origin/main`, with no opposing unique commits. Current frontend build passed, as did the backend build and one starter Jest test. The intentional local portfolio demo-login bypass and existing full-project lint debt remain the chief risks; no public deployment was performed.
+
+## Main Promotion Complete - 2026-09-15
+
+`dev` was merged without conflict into local `main` as `be3d684 merge: promote portfolio updates to main`. The user explicitly authorized the ensuing push to `origin/main`. The merge includes all portfolio code, memory docs, the existing `.review-build/` output, and removes the historical uppercase `Docs/` directory in favor of the current ten-file lowercase `docs/` memory set.

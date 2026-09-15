@@ -180,3 +180,15 @@ Checks:
 
 Risk accepted by request:
 - `main` will retain the intentionally passwordless local demo-login endpoint and existing lint debt. The change is for portfolio use, not public production hosting.
+
+### 2026-09-15 - Merge Dev Into Main
+
+Summary:
+- Merged `dev` into local `main` without conflicts after the user explicitly requested promotion.
+
+Merge commit:
+- `be3d684 merge: promote portfolio updates to main`
+
+Scope:
+- The merge brings all six preceding `dev` commits, including portfolio access/data/UI updates and the lower-case `docs/` memory system.
+- The resulting Git tree removes the superseded historical uppercase `Docs/` directory.
