@@ -213,3 +213,14 @@ Validation:
 
 Decision:
 - Use one Supplier screenshot as the principal preview and omit unexported notebook visualizations rather than inventing model charts or metrics.
+
+### 2026-09-15 - Publish Portfolio README To Main
+
+Summary:
+- Merged the README portfolio refresh to `main` without conflicts and pushed it to GitHub.
+
+Merge commit:
+- `50d00c2 merge: publish portfolio README`
+
+Scope:
+- Centered README hero, owner-provided logo and application screenshot, evidence-bounded architecture and setup documentation.

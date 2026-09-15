@@ -130,4 +130,4 @@ Likely active areas:
 - Current task: prepare a centered, GitHub-ready README hero and portfolio documentation using owner-provided visual assets.
 - New README assets are stored in `docs/assets/readme/`: the VolumeMate SVG logo and a verified Supplier pool overview screenshot.
 - `README.md` now documents the implemented React Native Web, NestJS, Prisma/PostgreSQL, and VolumeMind architecture, local setup, validation, known limitations, and explicit demo-auth safety warning.
-- Branch: `docs/readme-portfolio-refresh`, created from the latest `main`. The change is not committed or pushed yet.
+- The README work was merged and pushed to `main` in `50d00c2 merge: publish portfolio README`.
