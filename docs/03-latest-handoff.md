@@ -113,4 +113,4 @@ The user explicitly requested a merge and push to `main`. Before promotion, `dev
 
 ## Main Promotion Complete - 2026-09-15
 
-`dev` was merged without conflict into local `main` as `be3d684 merge: promote portfolio updates to main`. The user explicitly authorized the ensuing push to `origin/main`. The merge includes all portfolio code, memory docs, the existing `.review-build/` output, and removes the historical uppercase `Docs/` directory in favor of the current ten-file lowercase `docs/` memory set.
+`dev` was merged without conflict into `main` as `be3d684 merge: promote portfolio updates to main`, then pushed to `origin/main` with handoff commit `9391741 docs(memory): record main promotion`. The merge includes all portfolio code, memory docs, the existing `.review-build/` output, and removes the historical uppercase `Docs/` directory in favor of the current ten-file lowercase `docs/` memory set.

@@ -123,4 +123,4 @@ Likely active areas:
 ## 2026-09-15 Main Promotion Complete (Current)
 
 - `dev` was merged cleanly into local `main` with merge commit `be3d684 merge: promote portfolio updates to main`.
-- The merge will be pushed to `origin/main` after this handoff record is committed.
+- The merge and final handoff record were pushed to `origin/main` in `9391741 docs(memory): record main promotion`.
