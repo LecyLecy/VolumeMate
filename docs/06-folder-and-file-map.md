@@ -104,3 +104,9 @@ Historical correction: docs/old does not exist in this checkout. Historical docs
 | Bug Symptom | Likely Area | Likely Files | What To Ask User For |
 |---|---|---|---|
 | Supplier bottom bar looks flat, touches screen edges, or has extra actions | Supplier navigation markup/styles | `frontend/src/screens/MenuScreen.tsx`, compare with `frontend/src/components/KoperasiBottomNav.tsx` | Mobile-width screenshot showing the full bottom bar and active tab. |
+
+## Main Promotion Reference - 2026-09-15
+
+| Concern | Likely Files | Notes |
+|---|---|---|
+| Local-only portfolio authentication on `main` | `frontend/src/screens/LoginScreen.tsx`, `frontend/src/services/api.ts`, `backend/src/auth/auth.controller.ts`, `backend/src/auth/auth.service.ts` | `POST /auth/demo-login` issues a JWT without a password. Remove or gate it before public hosting. |

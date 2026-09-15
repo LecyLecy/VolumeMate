@@ -89,3 +89,8 @@
 - Cause: `MenuScreen.tsx` used a separate full-width, labeled bottom bar instead of the established floating Admin Koperasi navigation treatment.
 - Fix: copied the `KoperasiBottomNav` container and active-state design into the existing two-action Supplier navigation while preserving Proposal/Audit behavior.
 - Verified: frontend production build passed and live mobile-width rendering shows the floating two-icon capsule. Browser automation timed out while attempting the Audit Log click, so re-check both active states manually if future navigation behavior changes.
+
+## Main Promotion Risk - 2026-09-15
+
+- The requested `dev` to `main` promotion includes the intentional passwordless portfolio endpoint and existing lint baseline failures.
+- Validation before promotion: frontend build passed; backend build and the single starter Jest test passed. Full lint remains an unresolved baseline issue and should not be treated as passing.

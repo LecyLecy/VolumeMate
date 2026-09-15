@@ -106,3 +106,7 @@ The Supplier screen bottom navigation in `frontend/src/screens/MenuScreen.tsx` n
 ## GitHub Publication - 2026-09-07
 
 All accumulated work was committed and pushed to `origin/dev` in `59edf91 feat(portfolio): add demo access and sample data`. This includes the portfolio login gateway, passwordless local-only demo route, populated demo-data script, Supplier audit/navigation fixes, ten memory docs, and the pre-existing `.review-build/` verification artifacts. `main` was not modified or merged.
+
+## Pending Main Promotion - 2026-09-15
+
+The user explicitly requested a merge and push to `main`. Before promotion, `dev` was clean and six commits ahead of `origin/main`, with no opposing unique commits. Current frontend build passed, as did the backend build and one starter Jest test. The intentional local portfolio demo-login bypass and existing full-project lint debt remain the chief risks; no public deployment was performed.

@@ -166,3 +166,17 @@ Commit:
 
 Decision:
 - Keep `main` untouched; the user authorized a push, not a merge or direct publication of the deploy-ready branch.
+
+### 2026-09-15 - Validate Dev For Main Promotion
+
+Summary:
+- Audited the requested `dev` to `main` promotion: no working-tree changes, six `dev` commits ahead, and no unique `main` commits.
+- Verified the frontend production build, backend production build, and backend starter test before merge.
+
+Checks:
+- `frontend/npm run build -- --outDir <temporary folder>`: passed.
+- `backend/npm run build`: passed.
+- `backend/npm test -- --runInBand`: 1 suite and 1 test passed.
+
+Risk accepted by request:
+- `main` will retain the intentionally passwordless local demo-login endpoint and existing lint debt. The change is for portfolio use, not public production hosting.

@@ -112,3 +112,10 @@ Likely active areas:
 - All requested source, portfolio demo data, documentation, and existing `.review-build/` artifacts were committed and pushed to `origin/dev`.
 - Commit: `59edf91 feat(portfolio): add demo access and sample data`.
 - No merge to `main` was requested or performed.
+
+## 2026-09-15 Main Promotion Check (Current)
+
+- User requested promotion from `dev` to `main`.
+- Before the merge, the working tree was clean; `dev` was six commits ahead of `origin/main`, and `origin/main` had no unique commits.
+- Frontend production build passed using a temporary output folder. Backend build and its starter Jest suite also passed.
+- Known portfolio limitation remains: the local-only passwordless `POST /auth/demo-login` endpoint and baseline lint debt will be present on `main` after the requested promotion.
