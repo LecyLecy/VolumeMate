@@ -110,3 +110,14 @@ Historical correction: docs/old does not exist in this checkout. Historical docs
 | Concern | Likely Files | Notes |
 |---|---|---|
 | Local-only portfolio authentication on `main` | `frontend/src/screens/LoginScreen.tsx`, `frontend/src/services/api.ts`, `backend/src/auth/auth.controller.ts`, `backend/src/auth/auth.service.ts` | `POST /auth/demo-login` issues a JWT without a password. Remove or gate it before public hosting. |
+
+## README Portfolio Assets - 2026-09-15
+
+| Asset | File | Purpose |
+|---|---|---|
+| Centered hero logo | `docs/assets/readme/volumemate-logo.svg` | Transparent VolumeMate logo displayed at the top of `README.md`. |
+| Application preview | `docs/assets/readme/supplier-pool-overview.png` | Supplier active-pool screenshot displayed in `README.md`. |
+
+| Bug Symptom | Likely Area | Likely Files | What To Ask User For |
+|---|---|---|---|
+| README image does not render on GitHub | Relative asset path or case mismatch | `README.md`, `docs/assets/readme/*` | GitHub README URL, rendered screenshot, exact repository path and branch. |

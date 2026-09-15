@@ -1,154 +1,215 @@
-# VolumeMate
+<div align="center">
+  <img src="./docs/assets/readme/volumemate-logo.svg" width="220" alt="VolumeMate logo" />
 
-VolumeMate adalah platform sistem pengadaan pupuk cerdas (Smart Procurement System) untuk koperasi pertanian dan toko gerai pupuk desa. Aplikasi ini mengotomatisasi pencatatan inventaris manual, memproyeksikan kebutuhan stok di masa mendatang menggunakan kecerdasan buatan, serta menyediakan fitur patungan pengadaan untuk mengoptimalkan efisiensi pengadaan barang melalui diskon grosir berbasis volume.
+  <h1>VolumeMate</h1>
 
----
+  <h3>Cooperative procurement workflows with demand-guided planning</h3>
 
-## Cara Kerja Aplikasi
+  <p>
+    A full-stack portfolio application for agricultural cooperatives to record fertilizer activity,
+    coordinate collective purchasing, and review supplier price tiers in one mobile-oriented web experience.
+  </p>
 
-Aplikasi ini bekerja melalui empat komponen utama untuk menyederhanakan dan menghemat pengadaan pupuk:
+  <p>
+    <a href="https://github.com/LecyLecy/VolumeMate">Source Code</a>
+    ·
+    <a href="#run-locally">Run Locally</a>
+    ·
+    <a href="#limitations">Limitations</a>
+  </p>
+</div>
 
-### 1. Manajemen Mutasi Stok Real-Time
-Pengurus koperasi mencatat riwayat masuk dan keluar secara digital:
-- **Pemasukan**: Pengadaan pupuk dari supplier eksternal yang menambah jumlah stok fisik koperasi.
-- **Pengeluaran/Penyaluran**: Pendistribusian pupuk kepada para petani anggota yang memotong persediaan stok fisik dan menghasilkan pendapatan tunai bagi koperasi.
+## Overview
 
-### 2. Pelacakan Tingkat Harga Supplier (Volume Price Tracker)
-Supplier pupuk memiliki tingkatan harga (price tiers) yang berbeda-beda tergantung jumlah pemesanan. VolumeMate melacak rentang pemesanan ini secara aktif dan memvisualisasikan posisi kuantitas pesanan saat ini terhadap batas kuantitas (threshold) berikutnya agar koperasi bisa mendapatkan harga beli per kg yang lebih murah.
+VolumeMate is an end-to-end web application for agricultural procurement workflows. It brings together inventory activity, collective purchasing pools, supplier price tiers, audit history, and demand recommendations so a cooperative can reason about a procurement decision from one interface.
 
-### 3. Asisten Cerdas VolumeMind (AI Engine)
-VolumeMind menggunakan algoritma machine learning (Random Forest) untuk memprediksi kebutuhan pupuk bulan berikutnya berdasarkan faktor historis:
-- **Curah Hujan & Musim Tanam**: Menentukan kebutuhan penyerapan pupuk di lahan pertanian.
-- **Prediksi Kebutuhan (Demand Forecasting)**: Menghasilkan estimasi volume kebutuhan pupuk dalam kilogram.
-- **Rekomendasi Optimasi Pembelian (Volume Hack)**: Menghitung secara otomatis jika menambah sedikit volume pembelian di atas prediksi kebutuhan akan memicu tier harga supplier yang lebih murah, sehingga menghasilkan total pengeluaran belanja yang lebih hemat.
+The project has three portfolio roles:
 
-### 4. Pengadaan Kolektif (Collective Buying Pool)
-Jika satu koperasi desa tidak memenuhi batas minimum pemesanan grosir untuk mendapatkan harga murah, mereka dapat bergabung ke dalam Collective Buying Pool bersama koperasi tetangga. Sistem secara dinamis menghitung total kuantitas pemesanan dari seluruh anggota yang bergabung, memperbarui harga beli untuk semua anggota di dalam pool ketika target tier tercapai, dan mereset status pool setelah selesai dikonfirmasi.
+- **Admin Koperasi** records transactions, reviews dashboard information, joins collective pools, and accesses audit history.
+- **Supplier** reviews proposals and active pools, then views supplier-facing audit history.
+- **Admin** opens a static approval interface for the portfolio walkthrough.
 
----
+The implementation separates the React Native Web client, a NestJS REST API backed by PostgreSQL through Prisma, and VolumeMind, a small FastAPI service that serves demand predictions and purchasing recommendations.
 
-## Flowchart Sistem
+## Application Preview
 
-Alur interaksi fungsional utama di dalam sistem VolumeMate dijelaskan pada diagram di bawah ini:
+<p align="center">
+  <img src="./docs/assets/readme/supplier-pool-overview.png" width="320" alt="Supplier view showing active fertilizer procurement pools" />
+</p>
+
+<p align="center"><em>Supplier view, showing active collective procurement pools and their current volume progress.</em></p>
+
+## Product Experience
+
+- Record incoming procurement and outgoing distribution activity.
+- Inspect active collective buying pools and join a pool from the Koperasi flow.
+- Track price tiers by product volume, including the active tier price displayed in audit history.
+- Review manual and pool-based audit records, with CSV export available from the Koperasi audit screen.
+- View supplier-side proposal and pool management states.
+- Request a VolumeMind demand recommendation through the backend dashboard integration.
+- Use a three-role local portfolio gateway to reach Koperasi, Supplier, and Admin views without entering credentials.
+
+## How It Works
 
 ```mermaid
-graph TD
-    A["Pengurus Koperasi"] --> B["Pencatatan Transaksi Manual"]
-    B -->|Pemasukan / Beli| C["Stok Masuk & Pengeluaran Kas"]
-    B -->|Pengeluaran / Jual| D["Stok Keluar & Pendapatan Kas"]
-    
-    C & D --> E["Database PostgreSQL"]
-    
-    F["VolumeMind AI Engine"] -->|Mengambil Data Historis & Cuaca| G["Prediksi Demand & Volume Hack"]
-    G -->|Tampilkan di Dashboard| A
-    
-    A --> H["Collective Buying Pool"]
-    H -->|Gabung Anggota Lintas Koperasi| I["Akumulasi Volume Patungan"]
-    I -->|Mencapai Threshold Supplier| J["Update Harga Murah untuk Semua Anggota"]
-    J -->|Selesai Konfirmasi| K["Pemesanan Dikirim & Stok Masuk"]
+flowchart LR
+    A["Koperasi or Supplier"] --> B["React Native Web client"]
+    B --> C["NestJS REST API"]
+    C --> D[("PostgreSQL via Prisma")]
+    C --> E["VolumeMind FastAPI service"]
+    E --> F["Demand prediction and purchase recommendation"]
+    F --> C
+    C --> B
 ```
 
----
+The Koperasi client records transactions and can join a collective pool. The backend persists the order and pool data, then exposes active pool and audit-log endpoints for the dashboard. For demand guidance, the backend calls VolumeMind's `/predict` and `/recommend` APIs, then returns the recommendation to the dashboard.
 
-## Tech Stack
+## Technical Architecture
 
-| Komponen | Teknologi | Keterangan |
-|---|---|---|
-| **Frontend** | React Native Web (React, Vite, CSS) | Antarmuka web responsif dengan nuansa mobile native |
-| **Backend** | NestJS (TypeScript, Prisma ORM) | RESTful API untuk melayani otentikasi, manajemen stok, dan pool |
-| **AI Engine** | Python, FastAPI, Pandas, Joblib, Scikit-learn | Layanan mikro untuk perhitungan model regresi demand forecasting |
-| **Database** | PostgreSQL | Penyimpanan data relasional terstruktur untuk transaksi dan inventaris |
+### Frontend
 
----
+The frontend is a Vite application built with React and React Native Web. It uses hash-based navigation in `frontend/src/App.tsx`, which keeps the app deployable as a static-style client while routing each signed-in role to the appropriate screen. Session information is stored in browser `localStorage` for the current portfolio implementation.
 
-## Panduan Menjalankan Aplikasi Secara Lokal
+### Backend and data
 
-Ikuti langkah-langkah berikut untuk menginstal dan menjalankan semua layanan VolumeMate di mesin lokal Anda.
+The NestJS backend exposes REST endpoints for authentication, dashboard summaries, suppliers and price tiers, orders, collective pools, audit logs, and CSV export. Prisma maps the PostgreSQL data model for cooperatives, users, suppliers, products, price tiers, orders, pool membership, distributions, and audit records.
 
-### Prasyarat
-Sebelum memulai, pastikan perangkat Anda telah terinstal:
-- Node.js (versi 18 ke atas)
+### VolumeMind
+
+`VolumeMind/train.py` trains a scikit-learn `GradientBoostingRegressor` pipeline. It transforms categorical cooperative, fertilizer, and planting-season fields with one-hot encoding, then uses month, rainfall, and land-area features to predict fertilizer distribution volume. The training script uses a chronological split, evaluates test MAE and R², performs time-series cross-validation, and saves the fitted pipeline as `demand_forecasting_model.joblib`.
+
+`VolumeMind/api.py` exposes FastAPI endpoints for prediction and recommendation. The recommendation flow compares expected demand with the available price tiers to show whether additional volume could unlock a lower price tier.
+
+### Portfolio access decision
+
+The login page intentionally provides one-click Koperasi and Supplier demo access through `POST /auth/demo-login`. This route issues a JWT for a matching local demo user without a password and is suitable only for a local portfolio walkthrough. It must be removed or protected by an explicit environment gate before any public deployment.
+
+## Technology
+
+| Area | Tools |
+| --- | --- |
+| Interface | React, React Native Web, Vite, TypeScript |
+| API | NestJS, TypeScript |
+| Data | PostgreSQL, Prisma ORM, `pg` |
+| Authentication | JWT, bcryptjs |
+| Demand service | Python, FastAPI, pandas, scikit-learn, joblib |
+| Validation | TypeScript build, Nest build, Jest starter test |
+
+## Repository Structure
+
+```text
+VolumeMate/
+├── frontend/                   # Vite and React Native Web client
+│   └── src/
+│       ├── screens/            # Koperasi, Supplier, Admin, audit, pool views
+│       ├── components/         # Shared UI components
+│       └── services/api.ts     # Frontend API client and session handling
+├── backend/                    # NestJS API
+│   ├── prisma/                 # Prisma schema, migrations, portfolio data script
+│   └── src/                    # Auth, dashboard, order, supplier, and AI modules
+├── VolumeMind/                 # FastAPI prediction service and training assets
+│   ├── api.py
+│   ├── train.py
+│   └── demand_forecasting_model.joblib
+├── docs/                       # Project memory and README visual assets
+└── README.md
+```
+
+## Run Locally
+
+### Prerequisites
+
+- Node.js and npm
 - PostgreSQL
-- Python (versi 3.9 ke atas)
+- Python with `pip`
 
----
+### 1. Configure the backend
 
-### Langkah 1: Persiapan Database PostgreSQL
-1. Buat database kosong baru di PostgreSQL Anda, misalnya bernama `volumemate`.
-2. Pastikan Anda mencatat detail koneksi seperti host, port, username, password, dan nama database tersebut.
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
 
----
+Set the following environment variable in `backend/.env`:
 
-### Langkah 2: Konfigurasi dan Jalankan Backend
-1. Masuk ke direktori backend:
-   ```bash
-   cd backend
-   ```
-2. Instal semua dependensi Node.js:
-   ```bash
-   npm install
-   ```
-3. Salin file lingkungan contoh dan buat konfigurasi baru:
-   ```bash
-   copy .env.example .env
-   ```
-4. Buka file `.env` yang baru dibuat di editor teks Anda, dan sesuaikan nilai variabel berikut dengan kredensial PostgreSQL Anda:
-   ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/volumemate"
-   PORT=3000
-   JWT_SECRET="rahasia_volumemate_super_aman_123"
-   ```
-5. Sinkronisasikan skema Prisma ke database PostgreSQL Anda:
-   ```bash
-   npx prisma db push
-   ```
-6. Jalankan script seeding untuk mengisi data awal (akun demo admin, supplier default, dan produk awal):
-   ```bash
-   npm run seed
-   ```
-7. Jalankan server backend dalam mode pengembangan:
-   ```bash
-   npm run start:dev
-   ```
-   Layanan backend akan berjalan di http://localhost:3000.
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string, required |
+| `PORT` | Backend port, defaults to `3000` |
+| `JWT_SECRET` | JWT signing secret, recommended |
+| `VOLUMEMIND_URL` | VolumeMind base URL, defaults to `http://localhost:8000` |
 
----
+Apply the schema and start the API:
 
-### Langkah 3: Konfigurasi dan Jalankan AI Engine (VolumeMind)
-1. Buka terminal baru dan masuk ke direktori VolumeMind:
-   ```bash
-   cd VolumeMind
-   ```
-2. Instal modul Python yang diperlukan:
-   ```bash
-   pip install fastapi uvicorn pandas joblib scikit-learn
-   ```
-3. Jalankan server FastAPI menggunakan uvicorn:
-   ```bash
-   python -m uvicorn api:app --port 8000 --reload
-   ```
-   Layanan AI Engine akan aktif melayani permintaan prediksi di http://localhost:8000.
+```bash
+npx prisma migrate dev
+npm run start:dev
+```
 
----
+For a disposable local portfolio database, populate the configured demo users with Prisma's seed command, then add the non-destructive portfolio pool and audit data:
 
-### Langkah 4: Konfigurasi dan Jalankan Frontend
-1. Buka terminal baru dan masuk ke direktori frontend:
-   ```bash
-   cd frontend
-   ```
-2. Instal semua dependensi frontend:
-   ```bash
-   npm install
-   ```
-3. Jalankan server pengembangan frontend:
-   ```bash
-   npm run dev
-   ```
-   Aplikasi frontend web Anda kini siap diakses melalui tautan lokal yang tertera di terminal (biasanya http://localhost:5173).
+```bash
+npx prisma db seed
+npm run demo:data
+```
 
----
+> The legacy seed clears existing data. Use it only with a disposable local database.
 
-### Akun Demo untuk Login
-Gunakan kredensial berikut untuk masuk ke dashboard koperasi pengadaan:
-- **Email**: `admin@koperasi.com`
-- **Password**: `password123`
+### 2. Start VolumeMind
+
+```bash
+cd VolumeMind
+pip install fastapi uvicorn pandas joblib scikit-learn
+python -m uvicorn api:app --host 127.0.0.1 --port 8000
+```
+
+### 3. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite, commonly `http://127.0.0.1:5173/`. The portfolio login page provides three quick-access actions: **Admin Koperasi**, **Supplier**, and **Admin**.
+
+## Testing and Validation
+
+The repository currently includes a starter backend Jest suite and build scripts for both services.
+
+```bash
+# Frontend
+cd frontend
+npm run build
+
+# Backend
+cd backend
+npm run build
+npm test -- --runInBand
+```
+
+The full lint commands currently report pre-existing issues in both frontend and backend files. Treat a successful build and starter test as a basic validation step, not comprehensive integration coverage.
+
+## Limitations
+
+- Supplier proposals and approval interactions are primarily browser-local and are not a fully persistent multi-user workflow.
+- The Admin approval page is static for the portfolio demo.
+- Payment and payout lifecycle features are not implemented in the current database schema.
+- The demo-login endpoint bypasses password verification and must not be exposed publicly.
+- The pool target volume uses a frontend fallback in the portfolio experience because it is not stored directly in the current Prisma model.
+- Test coverage is limited to a starter backend test, and existing lint debt remains.
+
+## Future Improvements
+
+- Replace browser-local proposal state with database models and role-protected endpoints.
+- Add account approval status, document storage, and real Admin actions.
+- Add product compatibility, ownership checks, and transactional handling around pool repricing.
+- Gate or remove portfolio demo authentication for public deployments.
+- Add API integration tests, frontend interaction tests, and model-evaluation assets that can be published with the project.
+
+## Data, Attribution, and License
+
+The repository includes local CSV datasets in `VolumeMind/` and a trained model artifact. An external dataset provenance or live data source is not documented in the repository.
+
+The README logo and application screenshot are portfolio assets supplied by the project owner. No root license file is currently included, and the backend package metadata is marked `UNLICENSED`.

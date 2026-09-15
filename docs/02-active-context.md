@@ -124,3 +124,10 @@ Likely active areas:
 
 - `dev` was merged cleanly into local `main` with merge commit `be3d684 merge: promote portfolio updates to main`.
 - The merge and final handoff record were pushed to `origin/main` in `9391741 docs(memory): record main promotion`.
+
+## 2026-09-15 README Portfolio Refresh (Current)
+
+- Current task: prepare a centered, GitHub-ready README hero and portfolio documentation using owner-provided visual assets.
+- New README assets are stored in `docs/assets/readme/`: the VolumeMate SVG logo and a verified Supplier pool overview screenshot.
+- `README.md` now documents the implemented React Native Web, NestJS, Prisma/PostgreSQL, and VolumeMind architecture, local setup, validation, known limitations, and explicit demo-auth safety warning.
+- Branch: `docs/readme-portfolio-refresh`, created from the latest `main`. The change is not committed or pushed yet.

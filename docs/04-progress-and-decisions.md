@@ -192,3 +192,24 @@ Merge commit:
 Scope:
 - The merge brings all six preceding `dev` commits, including portfolio access/data/UI updates and the lower-case `docs/` memory system.
 - The resulting Git tree removes the superseded historical uppercase `Docs/` directory.
+
+### 2026-09-15 - Refresh README For Portfolio Presentation
+
+Summary:
+- Replaced the Indonesian, implementation-drifted README with an English-first portfolio README.
+- Added a centered hero treatment that mirrors the requested GitHub presentation style.
+- Added owner-provided logo and Supplier pool screenshot as tracked README assets.
+
+Files changed:
+- `README.md`: portfolio overview, preview, architecture, verified setup, validation, limitations, and future work.
+- `docs/assets/readme/volumemate-logo.svg`: provided transparent logo.
+- `docs/assets/readme/supplier-pool-overview.png`: provided application preview.
+- Memory docs 02/03/04/06/08/10.
+
+Validation:
+- Verified both README image paths exist.
+- Verified `README.md` contains no em dash characters.
+- `git diff --check` passed.
+
+Decision:
+- Use one Supplier screenshot as the principal preview and omit unexported notebook visualizations rather than inventing model charts or metrics.

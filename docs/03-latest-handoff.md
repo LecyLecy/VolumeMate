@@ -114,3 +114,9 @@ The user explicitly requested a merge and push to `main`. Before promotion, `dev
 ## Main Promotion Complete - 2026-09-15
 
 `dev` was merged without conflict into `main` as `be3d684 merge: promote portfolio updates to main`, then pushed to `origin/main` with handoff commit `9391741 docs(memory): record main promotion`. The merge includes all portfolio code, memory docs, the existing `.review-build/` output, and removes the historical uppercase `Docs/` directory in favor of the current ten-file lowercase `docs/` memory set.
+
+## README Portfolio Refresh - 2026-09-15
+
+The README was rebuilt as a centered portfolio landing page. It uses only owner-provided, repository-tracked visuals: `docs/assets/readme/volumemate-logo.svg` and `docs/assets/readme/supplier-pool-overview.png`. The content is English-first, has no em dashes, and is grounded in current source code: Vite plus React Native Web frontend, hash routing, NestJS plus Prisma/PostgreSQL backend, and the GradientBoostingRegressor-based VolumeMind service.
+
+The new README makes the intentional local `POST /auth/demo-login` bypass explicit, avoids unverified model metrics, marks unverified external data provenance as unavailable, and documents the destructive nature of the legacy seed. Verify Markdown image rendering and `git diff --check` before committing. The work is on `docs/readme-portfolio-refresh` and has not been pushed.
