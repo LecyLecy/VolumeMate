@@ -4,14 +4,13 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   useWindowDimensions,
   View,
   type ViewStyle,
 } from 'react-native-web';
 import { BrandMark } from '../components/BrandMark';
-import { colors, fonts } from '../theme';
 import { api } from '../services/api';
+import { colors, fonts } from '../theme';
 
 type LoginScreenProps = {
   onAdminLogin?: () => void;
@@ -20,95 +19,55 @@ type LoginScreenProps = {
   onSupplierLogin?: () => void;
 };
 
+type DemoRole = 'koperasi' | 'supplier' | 'admin';
+
 const cardShadow = {
   boxShadow: '0 4px 12px rgba(27, 67, 50, 0.05)',
 } as unknown as ViewStyle;
 
-
 export function LoginScreen({
   onAdminLogin,
   onKoperasiLogin,
-  onRegisterPress,
   onSupplierLogin,
 }: LoginScreenProps) {
   const { height } = useWindowDimensions();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [loadingRole, setLoadingRole] = useState<DemoRole | null>(null);
   const [notice, setNotice] = useState('');
 
-  const handleLogin = async () => {
-    const loginCode = email.trim();
+  const openDemo = async (role: DemoRole) => {
+    if (loadingRole) return;
 
-    // Shortcut '1': Login as Koperasi with real backend credentials
-    if (loginCode === '1') {
-      try {
-        setNotice('Sedang masuk sebagai Koperasi...');
-        await api.login('admin@koperasi.com', 'password123');
-        setNotice('');
-        onKoperasiLogin?.();
-      } catch (err: unknown) {
-        setNotice(getErrorMessage(err, 'Login gagal. Pastikan backend aktif.'));
-      }
-      return;
-    }
-
-    // Shortcut '2': Login as second Koperasi user
-    if (loginCode === '2') {
-      try {
-        setNotice('Sedang masuk sebagai Koperasi 2...');
-        await api.login('joko@koperasi.com', 'password123');
-        setNotice('');
-        onKoperasiLogin?.();
-      } catch (err: unknown) {
-        setNotice(getErrorMessage(err, 'Login gagal. Pastikan backend aktif.'));
-      }
-      return;
-    }
-
-    // Shortcut '3': Admin role (bypass for local admin console testing)
-    if (loginCode === '3') {
-      localStorage.setItem('volumemate_token', 'admin_session_token');
-      localStorage.setItem('volumemate_user', JSON.stringify({ name: 'Admin Platform', email: 'admin@platform.com', role: 'ADMIN' }));
-      onAdminLogin?.();
-      return;
-    }
-
-    // Shortcut '4': Login as Supplier with real backend credentials
-    if (loginCode === '4') {
-      try {
-        setNotice('Sedang masuk sebagai Supplier...');
-        await api.login('supplier@petrokimia.com', 'password123');
-        setNotice('');
-        onSupplierLogin?.();
-      } catch (err: unknown) {
-        setNotice(getErrorMessage(err, 'Login gagal. Pastikan backend aktif.'));
-      }
-      return;
-    }
-
-    if (!email || !password) {
-      setNotice('Email dan Password wajib diisi.');
-      return;
-    }
+    setLoadingRole(role);
+    setNotice('');
 
     try {
-      setNotice('Sedang masuk...');
-      const response = await api.login(email, password);
-      setNotice('');
-
-      const role = response.user?.role;
-      if (role === 'SUPPLIER') {
-        onSupplierLogin?.();
-      } else if (role === 'ADMIN_KOPERASI' || role === 'ANGGOTA') {
+      if (role === 'koperasi') {
+        const response = await api.demoLogin('koperasi');
+        seedPortfolioProposal(response.user?.koperasi?.name);
         onKoperasiLogin?.();
-      } else if (role === 'SUPPLIER') {
-        onSupplierLogin?.();
-      } else {
-        onKoperasiLogin?.();
+        return;
       }
+
+      if (role === 'supplier') {
+        await api.demoLogin('supplier');
+        onSupplierLogin?.();
+        return;
+      }
+
+      localStorage.setItem('volumemate_token', 'admin_session_token');
+      localStorage.setItem(
+        'volumemate_user',
+        JSON.stringify({
+          name: 'Admin Platform',
+          email: 'admin@platform.com',
+          role: 'ADMIN',
+        }),
+      );
+      onAdminLogin?.();
     } catch (err: unknown) {
-      setNotice(getErrorMessage(err, 'Login gagal. Periksa kembali email dan password.'));
+      setNotice(getErrorMessage(err, 'Demo tidak dapat dibuka. Pastikan backend dan database aktif.'));
+    } finally {
+      setLoadingRole(null);
     }
   };
 
@@ -117,99 +76,110 @@ export function LoginScreen({
       <View style={styles.page}>
         <View style={styles.card}>
           <View style={styles.header}>
-            <BrandMark size={42} />
-            <Text style={styles.subtitle}>Solusi Pengadaan Agrikultur Modern</Text>
+            <BrandMark size={46} />
+            <Text style={styles.title}>Jelajahi Demo VolumeMate</Text>
+            <Text style={styles.subtitle}>
+              Pilih peran untuk membuka halaman portfolio tanpa memasukkan email atau password.
+            </Text>
           </View>
 
-          <View style={styles.form}>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Email atau Gmail</Text>
-              <View style={styles.inputWrap}>
-                <Text style={styles.inputIcon}>@</Text>
-                <TextInput
-                  accessibilityLabel="Email atau Gmail"
-                  autoCapitalize="none"
-                  inputMode="email"
-                  keyboardType="email-address"
-                  onChangeText={setEmail}
-                  placeholder="masukkan@email.anda"
-                  placeholderTextColor={colors.outline}
-                  style={styles.input}
-                  value={email}
-                />
-              </View>
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputWrap}>
-                <Text style={styles.inputIcon}>#</Text>
-                <TextInput
-                  accessibilityLabel="Password"
-                  onChangeText={setPassword}
-                  placeholder="********"
-                  placeholderTextColor={colors.outline}
-                  secureTextEntry={!isPasswordVisible}
-                  style={[styles.input, styles.passwordInput]}
-                  value={password}
-                />
-                <Pressable
-                  accessibilityLabel={isPasswordVisible ? 'Sembunyikan password' : 'Tampilkan password'}
-                  accessibilityRole="button"
-                  onPress={() => setIsPasswordVisible((current) => !current)}
-                  style={styles.eyeButton}
-                >
-                  <Text style={styles.eyeText}>{isPasswordVisible ? 'Tutup' : 'Lihat'}</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            <Pressable
-              accessibilityRole="link"
-              onPress={() => setNotice('Fitur lupa password belum tersedia.')}
-              style={styles.forgotLink}
-            >
-              <Text style={styles.linkText}>Lupa Password?</Text>
-            </Pressable>
-
-            <Pressable accessibilityRole="button" onPress={handleLogin} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Masuk</Text>
-            </Pressable>
+          <View style={styles.roleList}>
+            <RoleButton
+              description="Dashboard koperasi, pembelian kolektif, transaksi, dan audit log"
+              isLoading={loadingRole === 'koperasi'}
+              label="Admin Koperasi"
+              onPress={() => openDemo('koperasi')}
+            />
+            <RoleButton
+              description="Kelola proposal penawaran dan aktivitas pemasok"
+              isLoading={loadingRole === 'supplier'}
+              label="Supplier"
+              onPress={() => openDemo('supplier')}
+            />
+            <RoleButton
+              description="Tinjau halaman approval akun platform"
+              isLoading={loadingRole === 'admin'}
+              label="Admin"
+              onPress={() => openDemo('admin')}
+            />
           </View>
 
           {notice ? <Text style={styles.notice}>{notice}</Text> : null}
-
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>atau</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setNotice('Metode masuk Google memerlukan konfigurasi OAuth2.')}
-            style={styles.googleButton}
-          >
-            <View style={styles.googleMark}>
-              <Text style={styles.googleMarkText}>G</Text>
-            </View>
-            <Text style={styles.googleButtonText}>Lanjutkan dengan Google</Text>
-          </Pressable>
-
-          <View style={styles.registerRow}>
-            <Text style={styles.registerText}>Belum punya akun? </Text>
-            <Pressable accessibilityRole="link" onPress={onRegisterPress}>
-              <Text style={styles.registerLink}>Daftar sekarang</Text>
-            </Pressable>
-          </View>
+          <Text style={styles.demoNote}>Portfolio demo • Data akun demo disiapkan secara lokal</Text>
         </View>
       </View>
     </SafeAreaView>
   );
 }
 
+function RoleButton({
+  description,
+  isLoading,
+  label,
+  onPress,
+}: {
+  description: string;
+  isLoading: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={`Buka demo sebagai ${label}`}
+      accessibilityRole="button"
+      disabled={isLoading}
+      onPress={onPress}
+      style={({ pressed }) => [styles.roleButton, pressed && styles.roleButtonPressed]}
+    >
+      <View style={styles.roleCopy}>
+        <Text style={styles.roleLabel}>{isLoading ? 'Membuka...' : label}</Text>
+        <Text style={styles.roleDescription}>{description}</Text>
+      </View>
+      <Text style={styles.arrow}>→</Text>
+    </Pressable>
+  );
+}
+
 function getErrorMessage(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback;
+}
+
+function seedPortfolioProposal(cooperativeName?: string) {
+  const cooperative = cooperativeName || 'Koperasi Sumber Makmur';
+  const demoProposal = {
+    cooperative,
+    dateSubmitted: new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }),
+    location: 'Kab. Jember, Jawa Timur',
+    notes: 'Pengadaan pupuk untuk kebutuhan musim tanam berikutnya.',
+    pdfName: 'proposal_pengadaan_npk.pdf',
+    product: 'Pupuk NPK Phonska',
+    status: 'PENDING',
+    supplierEmail: 'supplier@petrokimia.com',
+    target: '10.000 Kg',
+    value: 'Rp 85.000.000',
+    volumeKg: 10000,
+  };
+
+  try {
+    const saved = localStorage.getItem('volumemate_proposals');
+    const proposals = saved ? (JSON.parse(saved) as Array<typeof demoProposal>) : [];
+    const alreadyExists = proposals.some(
+      (proposal) =>
+        proposal.cooperative === demoProposal.cooperative &&
+        proposal.product === demoProposal.product &&
+        proposal.status === 'PENDING',
+    );
+
+    if (!alreadyExists) {
+      localStorage.setItem('volumemate_proposals', JSON.stringify([demoProposal, ...proposals]));
+    }
+  } catch {
+    localStorage.setItem('volumemate_proposals', JSON.stringify([demoProposal]));
+  }
 }
 
 const styles = StyleSheet.create({
@@ -226,7 +196,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 430,
     backgroundColor: colors.surfaceCard,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 24,
     gap: 24,
     ...cardShadow,
@@ -235,165 +205,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  title: {
+    color: colors.onSurface,
+    fontFamily: fonts.heading,
+    fontSize: 25,
+    fontWeight: '700',
+    lineHeight: 32,
+    marginTop: 4,
+    textAlign: 'center',
+  },
   subtitle: {
     color: colors.onSurfaceVariant,
     fontFamily: fonts.body,
     fontSize: 14,
     lineHeight: 20,
+    maxWidth: 340,
     textAlign: 'center',
   },
-  form: {
-    gap: 16,
-    marginTop: 8,
+  roleList: {
+    gap: 12,
   },
-  fieldGroup: {
-    gap: 6,
-  },
-  label: {
-    color: colors.onSurface,
-    fontFamily: fonts.body,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    lineHeight: 16,
-  },
-  inputWrap: {
-    minHeight: 48,
-    flexDirection: 'row',
+  roleButton: {
+    minHeight: 82,
     alignItems: 'center',
-    backgroundColor: colors.surfaceContainerLowest,
-    borderColor: colors.outlineVariant,
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingLeft: 12,
-  },
-  inputIcon: {
-    width: 22,
-    color: colors.outline,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  input: {
-    flex: 1,
-    minHeight: 48,
-    borderWidth: 0,
-    color: colors.onSurface,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 20,
-    paddingHorizontal: 10,
-  },
-  passwordInput: {
-    paddingRight: 8,
-  },
-  eyeButton: {
-    minHeight: 48,
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  eyeText: {
-    color: colors.outline,
-    fontFamily: fonts.body,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  forgotLink: {
-    alignSelf: 'flex-end',
-  },
-  linkText: {
-    color: colors.primary,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 20,
-  },
-  primaryButton: {
-    minHeight: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: colors.primary,
-    borderRadius: 8,
-    marginTop: 8,
+    borderRadius: 10,
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
   },
-  primaryButtonText: {
+  roleButtonPressed: {
+    opacity: 0.86,
+    transform: [{ scale: 0.99 }],
+  },
+  roleCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  roleLabel: {
     color: colors.onPrimary,
     fontFamily: fonts.heading,
-    fontSize: 20,
+    fontSize: 19,
+    fontWeight: '700',
+    lineHeight: 25,
+  },
+  roleDescription: {
+    color: colors.onPrimary,
+    fontFamily: fonts.body,
+    fontSize: 11,
+    lineHeight: 15,
+    opacity: 0.82,
+  },
+  arrow: {
+    color: colors.onPrimary,
+    fontFamily: fonts.heading,
+    fontSize: 24,
     fontWeight: '600',
-    lineHeight: 28,
   },
   notice: {
-    color: colors.primaryContainer,
+    color: colors.errorRed,
     fontFamily: fonts.body,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
   },
-  dividerRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.outlineVariant,
-  },
-  dividerText: {
+  demoNote: {
     color: colors.outline,
     fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  googleButton: {
-    minHeight: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    backgroundColor: colors.surfaceContainerLowest,
-    borderColor: colors.outlineVariant,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  googleMark: {
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  googleMarkText: {
-    color: colors.errorRed,
-    fontFamily: fonts.heading,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  googleButtonText: {
-    color: colors.onSurface,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  registerRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: -8,
-  },
-  registerText: {
-    color: colors.onSurfaceVariant,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  registerLink: {
-    color: colors.primary,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 20,
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
   },
 });

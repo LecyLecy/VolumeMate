@@ -50,7 +50,7 @@ export function JoinPoolScreen({ onBackPress, onConfirm, pool }: JoinPoolScreenP
       <View style={[styles.shell, { minHeight: height }]}>
         <View style={styles.header}>
           <Pressable accessibilityLabel="Kembali" accessibilityRole="button" onPress={onBackPress} style={styles.backButton}>
-            <Text style={styles.backIcon}>‹</Text>
+            <Text style={styles.backText}>Kembali</Text>
           </Pressable>
           <Text style={styles.headerTitle}>Gabung Pool</Text>
           <View style={styles.headerSpacer} />
@@ -161,17 +161,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   backButton: {
-    width: 46,
+    width: 82,
     height: 46,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backIcon: {
-    color: colors.onSurfaceVariant,
+  backText: {
+    color: colors.primary,
     fontFamily: fonts.body,
-    fontSize: 44,
-    fontWeight: '300',
-    lineHeight: 46,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    lineHeight: 16,
   },
   headerTitle: {
     color: colors.primary,
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   headerSpacer: {
-    width: 46,
+    width: 82,
   },
   content: {
     gap: 28,

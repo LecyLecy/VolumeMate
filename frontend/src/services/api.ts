@@ -4,6 +4,9 @@ type LoginResponse = {
   access_token?: string;
   user?: {
     email?: string;
+    koperasi?: {
+      name?: string;
+    };
     role?: string;
   };
 };
@@ -80,6 +83,18 @@ export const api = {
     if (data.access_token) {
       setToken(data.access_token);
       localStorage.setItem('volumemate_user', JSON.stringify(data.user || { email }));
+    }
+    return data;
+  },
+
+  async demoLogin(role: 'koperasi' | 'supplier') {
+    const data = await request<LoginResponse>('/auth/demo-login', {
+      method: 'POST',
+      body: JSON.stringify({ role }),
+    });
+    if (data.access_token) {
+      setToken(data.access_token);
+      localStorage.setItem('volumemate_user', JSON.stringify(data.user || { role }));
     }
     return data;
   },

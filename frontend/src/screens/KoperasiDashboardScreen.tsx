@@ -506,7 +506,7 @@ function PoolActiveCard({ pool, onDetailPress }: { onDetailPress: () => void; po
     );
   }
 
-  const totalVolume = pool.targetVolumeKg || 1000;
+  const totalVolume = pool.targetVolumeKg || 10000;
   const currentVolume =
     pool.currentVolumeKg ||
     pool.orders?.reduce((acc, order) => acc + (order.orderItems?.[0]?.quantity || 0), 0) ||
