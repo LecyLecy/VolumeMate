@@ -126,3 +126,8 @@ Credential entry, forgot-password, and registration navigation are no longer ren
 - The Supplier screen has exactly two bottom actions: Proposal and Audit Log.
 - Its bar uses the same inset floating capsule, green border, shadow, and circular active state as `KoperasiBottomNav`.
 - Visible text labels are omitted to match the Koperasi bar; `accessibilityLabel` remains present for both actions.
+
+## README Screenshot Reference - 2026-09-15
+
+- `docs/assets/readme/supplier-pool-overview.png` is the verified Supplier view used as the application preview in the root README.
+- It shows the Koperasi-style floating two-action Supplier navigation, the pool-status tabs, and active pool cards with progress indicators.

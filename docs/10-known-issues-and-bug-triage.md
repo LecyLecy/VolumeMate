@@ -94,3 +94,9 @@
 
 - The requested `dev` to `main` promotion includes the intentional passwordless portfolio endpoint and existing lint baseline failures.
 - Validation before promotion: frontend build passed; backend build and the single starter Jest test passed. Full lint remains an unresolved baseline issue and should not be treated as passing.
+
+## README Evidence Boundary - 2026-09-15
+
+- The portfolio README intentionally does not publish model metrics or evaluation graphs. Although the notebook has embedded outputs, no standalone verified chart asset was supplied for GitHub README use.
+- The README documents the local dataset and trained model artifact, but leaves external dataset provenance unavailable because it is not recorded in the repository.
+- If adding a model-performance section later, request an exported, reproducible chart and the exact training output before adding any numeric claims.
